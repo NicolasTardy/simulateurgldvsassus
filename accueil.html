@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulateur Financement + Garantie</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #E60000;
+            --cuisine-blue: #004d99;
+            --sansfrais-green: #27ae60;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --success: #27ae60;
+            --highlight: #f1c40f;
+            --gld-color: #d35400;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .simulator-container {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #btn-download-pdf:hover {
+            background: #ecf0f1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .main-body {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .inputs-section {
+            flex: 1;
+            min-width: 300px;
+            padding: 30px;
+            background-color: #fafafa;
+            border-right: 1px solid #eee;
+        }
+
+        .results-section {
+            flex: 1.2;
+            min-width: 300px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+
+        .input-group input, 
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+
+        .input-group input:focus, 
+        .input-group select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        /* --- MODE SELECTOR (3 TABS) --- */
+        .mode-selector {
+            display: flex;
+            background: #e0e0e0;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 15px;
+        }
+
+        .mode-option {
+            flex: 1;
+            text-align: center;
+            padding: 10px 5px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: all 0.3s;
+            color: #666;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .mode-option.active {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .mode-option[data-value="standard"].active { color: var(--primary-color); }
+        .mode-option[data-value="cuisine"].active { color: var(--cuisine-blue); }
+        .mode-option[data-value="sansfrais"].active { color: var(--sansfrais-green); }
+
+        /* --- SUB SELECTOR (Pour Sans Frais) --- */
+        .sub-type-selector {
+            display: none;
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .sub-type-title {
+            font-size: 0.8rem;
+            color: #2e7d32;
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .sub-type-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .sub-btn {
+            padding: 6px 12px;
+            border: 1px solid #2e7d32;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            background: white;
+            color: #2e7d32;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .sub-btn.active {
+            background: #2e7d32;
+            color: white;
+        }
+
+        /* --- MULTI-PRODUCT STYLES --- */
+        .product-row {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .product-row:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            border-color: #ccc;
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .product-badge {
+            background: #2c3e50;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem;
+            margin-right: 8px;
+        }
+
+        /* --- GLD Styles --- */
+        .gld-wrapper {
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .gld-toggle-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: #d35400;
+            font-size: 0.95rem;
+            user-select: none;
+        }
+
+        .gld-toggle-label input {
+            width: auto;
+            margin-right: 12px;
+            transform: scale(1.3);
+        }
+
+        .gld-options {
+            margin-top: 15px;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .gld-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .gld-row select {
+            flex: 1;
+            font-size: 0.9rem;
+            padding: 8px;
+        }
+
+        .price-hero {
+            background: var(--primary-color);
+            color: white;
+            padding: 25px 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            margin-bottom: 25px;
+            transition: background-color 0.3s;
+        }
+
+        .price-hero.cuisine-mode { background: var(--cuisine-blue); }
+        .price-hero.sansfrais-mode { background: var(--sansfrais-green); }
+
+        .price-label {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .price-value {
+            font-size: 4.5rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin: 5px 0;
+            text-shadow: 0 3px 6px rgba(0,0,0,0.2);
+            word-wrap: break-word;
+        }
+
+        .price-sub {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .voucher-box {
+            background: #fff8e1;
+            border: 3px dashed #f39c12;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+            display: none;
+            position: relative;
+            overflow: hidden;
+            animation: popIn 0.5s ease-out;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .voucher-header {
+            color: #d35400;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .voucher-amount {
+            color: #e67e22;
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 5px 0;
+        }
+
+        .capital-reprise-box {
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .capital-title {
+            color: #2e7d32;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+
+        .capital-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .capital-item {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .capital-item.highlight {
+            border: 2px solid #2e7d32;
+            background: #f1f8e9;
+        }
+
+        .cap-label {
+            display: block;
+            font-size: 0.7rem;
+            color: #555;
+            margin-bottom: 4px;
+        }
+
+        .cap-value {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #2c3e50;
+        }
+        
+        .capital-item.highlight .cap-value {
+            color: #2e7d32;
+        }
+
+        .capital-note {
+            font-size: 0.75rem;
+            color: #555;
+            margin-top: 10px;
+            font-style: italic;
+            line-height: 1.3;
+        }
+
+        .net-gain-tag {
+            background: #2e7d32;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: bold;
+            padding: 8px 12px;
+            border-radius: 20px;
+            margin-top: 12px;
+            display: inline-block;
+            line-height: 1.4;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #ddd;
+        }
+        
+        .detail-item.highlight {
+            background: #fff3e0;
+            border-left-color: #f39c12;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            color: #888;
+            display: block;
+        }
+
+        .detail-value {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .legal-footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            font-size: 0.7rem;
+            color: #666;
+            border-top: 1px solid #eee;
+            max-height: 150px;
+            overflow-y: auto;
+            line-height: 1.4;
+        }
+
+        /* --- COMPARISON CARDS --- */
+        .comparison-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .comparison-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .comparison-card.active-option {
+            border-color: var(--primary-color);
+            background: #fff8f0;
+        }
+
+        .comparison-card.unavailable {
+            opacity: 0.5;
+            background: #f5f5f5;
+        }
+
+        .comparison-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .comparison-title {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+
+        .comparison-badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-gratuit {
+            background: #27ae60;
+            color: white;
+        }
+
+        .badge-compense {
+            background: #3498db;
+            color: white;
+        }
+
+        .badge-payant {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .badge-bonus {
+            background: #f39c12;
+            color: white;
+        }
+
+        .badge-active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .badge-unavailable {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .comparison-payment {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #2c3e50;
+            margin: 8px 0;
+            text-align: center;
+        }
+
+        .comparison-details {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .comparison-taeg {
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        .comparison-bonus {
+            background: #fff3cd;
+            border: 1px solid #f39c12;
+            border-radius: 6px;
+            padding: 6px;
+            margin-top: 8px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #856404;
+            font-weight: bold;
+        }
+
+        .comparison-unavailable-msg {
+            text-align: center;
+            color: #95a5a6;
+            font-style: italic;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .main-body { flex-direction: column; }
+            .inputs-section, .results-section { width: 100%; padding: 20px 15px; border-right: none; border-bottom: 1px solid #eee; }
+            .results-section { border-bottom: none; }
+            .price-value { font-size: 3.5rem; }
+            .gld-row { flex-direction: column; gap: 10px; }
+            .details-grid { grid-template-columns: 1fr; gap: 10px; }
+            .detail-item { display: flex; justify-content: space-between; align-items: center; }
+            .detail-label { margin-bottom: 0; }
+            .mode-selector { flex-direction: row; flex-wrap: wrap; }
+            .mode-option { flex: 1 1 30%; }
+            #comparison-grid { grid-template-columns: 1fr; }
+            .comparison-payment { font-size: 1.5rem; }
+            #btn-download-pdf { 
+                position: static !important; 
+                margin: 10px auto 0; 
+                display: flex !important;
+                width: 90%;
+                justify-content: center;
+            }
+            header { padding-bottom: 60px; }
+        }
+        @media (max-width: 380px) {
+            .capital-grid { grid-template-columns: 1fr; }
+            .price-value { font-size: 3rem; }
+            .mode-selector { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="simulator-container">
+        <header>
+            <h1><i class="fas fa-calculator"></i> Simulateur Financement</h1>
+            <button id="btn-download-pdf" onclick="downloadPDF()" style="position: absolute; top: 20px; right: 20px; background: white; color: #2c3e50; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: all 0.3s;">
+                <i class="fas fa-download"></i> Télécharger PDF
+            </button>
+        </header>
+
+        <div class="main-body">
+            <!-- COLONNE GAUCHE : PARAMÈTRES -->
+            <div class="inputs-section">
+                
+                <div class="mode-selector" id="mode-selector">
+                    <div class="mode-option active" data-value="standard" onclick="setMode('standard')">
+                        <i class="fas fa-tv"></i> Standard
+                    </div>
+                    <div class="mode-option" data-value="cuisine" onclick="setMode('cuisine')">
+                        <i class="fas fa-utensils"></i> Cuisine
+                    </div>
+                    <div class="mode-option" data-value="sansfrais" onclick="setMode('sansfrais')">
+                        <i class="fas fa-percent"></i> Sans Frais
+                    </div>
+                </div>
+
+                <!-- SOUS SELECTEUR SANS FRAIS -->
+                <div id="sub-type-selector" class="sub-type-selector">
+                    <div class="sub-type-title">Type de projet Sans Frais</div>
+                    <div class="sub-type-options">
+                        <div class="sub-btn active" id="sub-btn-standard" onclick="setSansFraisType('standard')">Standard</div>
+                        <div class="sub-btn" id="sub-btn-cuisine" onclick="setSansFraisType('cuisine')">Cuisine</div>
+                    </div>
+                </div>
+
+                <!-- SELECTEUR NOMBRE ARTICLES -->
+                <div class="input-group">
+                    <label>Nombre d'articles sur la facture</label>
+                    <select id="input-nb-articles" onchange="renderProducts()">
+                        <option value="1">1 Article</option>
+                        <option value="2">2 Articles</option>
+                        <option value="3">3 Articles</option>
+                        <option value="4">4 Articles</option>
+                        <option value="5">5 Articles</option>
+                    </select>
+                </div>
+
+                <!-- CONTAINER DYNAMIQUE DES PRODUITS -->
+                <div id="products-container">
+                    <!-- Généré par JS via renderProducts() -->
+                </div>
+
+                <div class="input-group">
+                    <label>Durée du financement (Mois)</label>
+                    <select id="input-months">
+                        <!-- Options générées par JS -->
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>TAEG (%)</label>
+                    <input type="number" id="input-taeg" value="18.64" step="0.01">
+                    <small id="taeg-hint" style="color:#888; display:block; margin-top:5px; font-size:0.8rem;"></small>
+                </div>
+
+            </div>
+
+            <!-- COLONNE DROITE : RÉSULTATS -->
+            <div class="results-section">
+                
+                <!-- Bloc Mensualité XXL -->
+                <div class="price-hero" id="price-hero">
+                    <div class="price-label">Mensualité estimée</div>
+                    <div class="price-value" id="display-payment">0,00 €</div>
+                    <div class="price-sub">
+                        pendant <strong id="display-months-count">10</strong> mois
+                    </div>
+                </div>
+
+                <!-- Bloc Bon d'achat (Crédit) -->
+                <div id="voucher-box" class="voucher-box">
+                    <div class="voucher-header"><i class="fas fa-check-circle"></i> Intérêts Remboursés</div>
+                    <div class="voucher-amount" id="display-voucher">0,00 €</div>
+                    <div style="font-size:0.9rem; color:#7f8c8d;">Sous forme de bon d'achat</div>
+                </div>
+
+                <!-- BLOC CAPITAL REPRISE (GLD) -->
+                <div id="capital-reprise-box" class="capital-reprise-box">
+                    <div class="capital-title"><i class="fas fa-piggy-bank"></i> Capital Reprise Futur</div>
+                    <div class="capital-grid">
+                        <div class="capital-item">
+                            <span class="cap-label">Standard (20%)</span>
+                            <span class="cap-value" id="cap-20">0 €</span>
+                        </div>
+                        <div class="capital-item highlight">
+                            <span class="cap-label">Avec Carte BUT (30%)</span>
+                            <span class="cap-value" id="cap-30">0 €</span>
+                        </div>
+                    </div>
+                    <div id="net-gain-display" style="display:none; text-align:center;">
+                        <span class="net-gain-tag" id="net-gain-text">Capital Reprise > Coût Garantie</span>
+                    </div>
+                    <div class="capital-note">
+                        Bon d'achat valable pour le rachat d'un nouvel appareil (Années 5 à 7) si aucun sinistre.
+                    </div>
+                </div>
+
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Prix Total Articles</span>
+                        <span class="detail-value" id="display-product-price">0,00 €</span>
+                    </div>
+                    <div class="detail-item highlight">
+                        <span class="detail-label">Montant Financé (Avec GLD)</span>
+                        <span class="detail-value" id="display-financed-amount">0,00 €</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Coût total crédit</span>
+                        <span class="detail-value" id="display-cost">0,00 €</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Montant total dû</span>
+                        <span class="detail-value" id="display-total">0,00 €</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SYNTHÈSE COMPARATIVE -->
+        <div id="comparison-section" style="background: #f8f9fa; padding: 20px; border-top: 2px solid #ddd;">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <h2 style="margin: 0; color: #2c3e50; font-size: 1.2rem;">
+                    <i class="fas fa-chart-bar"></i> Synthèse des Mensualités Disponibles
+                </h2>
+                <p style="color: #7f8c8d; font-size: 0.85rem; margin: 5px 0;">Toutes les options de financement pour ce projet</p>
+            </div>
+            <div id="comparison-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                <!-- Généré par JS -->
+            </div>
+        </div>
+
+        <!-- PIED DE PAGE : MENTIONS LÉGALES -->
+        <div class="legal-footer" id="legal-text"></div>
+    </div>
+
+    <script>
+        // --- DATA TARIFS GLD (inchangé) ---
+        const PRICES = {
+            electro: {
+                lavelinge: [[150,39.99,49.99],[250,69.99,79.99],[400,89.99,99.99],[450,99.99,109.99],[550,119.99,129.99],[9999,139.99,149.99]],
+                lavevaisselle: [[100,39.99,49.99],[150,59.99,69.99],[200,79.99,89.99],[300,89.99,99.99],[400,99.99,109.99],[450,109.99,119.99],[500,119.99,129.99],[700,129.99,139.99],[9999,139.99,159.99]],
+                sechelinge: [[250,69.99,79.99],[350,79.99,89.99],[450,109.99,119.99],[500,119.99,129.99],[9999,129.99,139.99]],
+                cuisiniere: [[100,10.99,20.99],[150,19.99,29.99],[200,24.99,34.99],[250,29.99,39.99],[300,39.99,49.99],[400,59.99,69.99],[500,69.99,89.99],[750,89.99,109.99],[900,99.99,119.99],[1000,119.99,139.99],[9999,139.99,159.99]],
+                four: [[150,null,29.99],[250,39.99,49.99],[300,44.99,54.99],[400,59.99,69.99],[500,69.99,89.99],[650,79.99,99.99],[9999,89.99,109.99]],
+                table: [[100,19.99,29.99],[150,29.99,39.99],[200,34.99,44.99],[250,39.99,49.99],[300,49.99,59.99],[400,59.99,69.99],[500,69.99,79.99],[650,99.99,109.99],[9999,109.99,129.99]],
+                hotte: [[100,14.99,24.99],[150,19.99,29.99],[200,24.99,34.99],[300,39.99,49.99],[350,49.99,69.99],[9999,59.99,79.99]],
+                ref: [[150,19.99,29.99],[250,39.99,49.99],[300,59.99,69.99],[400,69.99,79.99],[500,89.99,99.99],[600,109.99,119.99],[750,129.99,139.99],[9999,139.99,149.99]],
+                congel: [[200,39.99,49.99],[350,59.99,69.99],[500,89.99,99.99],[900,119.99,129.99],[9999,139.99,149.99]],
+                combine: [[200,29.99,39.99],[300,69.99,79.99],[400,79.99,89.99],[600,109.99,119.99],[850,119.99,129.99],[9999,139.99,149.99]],
+                refus: [[900,139.99,149.99],[950,159.99,169.99],[1000,189.99,199.99],[9999,219.99,229.99]],
+                cave: [[200,49.99,49.99],[350,59.99,59.99],[500,69.99,69.99],[9999,79.99,79.99]],
+                tv: [[100,null,19.99],[150,null,39.99],[200,null,49.99],[300,null,69.99],[400,null,89.99],[500,null,119.99],[600,null,129.99],[700,null,139.99],[800,null,169.99],[900,null,189.99],[1000,null,209.99],[1500,null,289.99],[2000,null,339.99],[9999,null,389.99]]
+            },
+            meuble: {
+                siege: [[50,6.99,9.99,null], [100,19.99,24.99,null], [150,29.99,39.99,null], [250,39.99,49.99,null], [300,44.99,59.99,69.99], [350,49.99,69.99,79.99], [500,59.99,79.99,89.99], [700,74.99,99.99,109.99], [1000,99.99,119.99,129.99], [1500,149.99,169.99,179.99], [2000,189.99,249.99,259.99], [3000,269.99,339.99,349.99], [4000,349.99,449.99,459.99], [9999,399.99,549.99,559.99]],
+                sejour: [[50,9.99,14.99,null], [100,19.99,24.99,null], [200,29.99,39.99,null], [350,39.99,49.99,null], [500,49.99,59.99,null], [1000,69.99,99.99,null], [1500,99.99,159.99,null], [3000,149.99,199.99,null], [5000,199.99,289.99,null], [7000,249.99,599.99,null], [10000,349.99,749.99,null], [99999,499.99,999.99,null]],
+                literie: [[50,9.99,14.99,null], [100,19.99,24.99,null], [200,29.99,39.99,null], [350,39.99,49.99,null], [500,49.99,59.99,null], [1000,69.99,99.99,null], [1500,99.99,159.99,null], [3000,149.99,199.99,null], [5000,199.99,289.99,null], [9999,289.99,null,null]], 
+                cuisine: [[50,9.99,14.99,null], [100,19.99,24.99,null], [200,29.99,39.99,null], [350,39.99,49.99,null], [500,49.99,59.99,null], [1000,69.99,99.99,null], [1500,99.99,159.99,null], [3000,149.99,199.99,null], [9999,289.99,null,null]], 
+                bureau: [[50,9.99,14.99,null], [100,19.99,24.99,null], [200,29.99,39.99,null], [350,39.99,49.99,null], [500,49.99,59.99,null], [1000,69.99,99.99,null], [1500,99.99,159.99,null], [3000,149.99,199.99,null], [9999,289.99,null,null]] 
+            }
+        };
+
+        const LABELS = {
+            electro: {
+                lavelinge: "Lave-Linge", lavevaisselle: "Lave-Vaisselle", sechelinge: "Sèche-Linge", cuisiniere: "Cuisinière", four: "Four Encastrable",
+                table: "Table de Cuisson", hotte: "Hotte", ref: "Réfrigérateur", congel: "Congélateur", combine: "Combiné",
+                refus: "Réfrigérateur US", cave: "Cave à Vin", tv: "Télévision"
+            },
+            meuble: {
+                siege: "Canapé / Fauteuil", sejour: "Séjour / Rangement", literie: "Literie", cuisine: "Cuisine (Meuble)", bureau: "Bureau"
+            }
+        };
+
+        // --- NOUVEAUX BAREMES TAEG 2025 ---
+        const TAEG_BAREME = {
+            // SANS FRAIS STANDARD (Gratuit) - Limité à 20 mois
+            sansfrais_standard: {
+                '0-3000': {
+                    5: 8.47, 10: 4.53, 12: 3.82, 20: 5.45
+                },
+                '3001-6000': {
+                    10: 4.53, 12: 3.82, 20: 5.45
+                },
+                '6001+': {
+                    10: 4.53, 12: 3.82, 20: 5.45
+                }
+            },
+            
+            // SANS FRAIS CUISINE (Compensé à 4.90%)
+            sansfrais_cuisine: {
+                '0-3000': {
+                    12: 8.95, 24: 9.78, 36: 9.35, 48: 8.27, 60: 7.62
+                },
+                '3001-6000': {
+                    12: 8.95, 24: 9.78, 36: 9.35, 48: 8.27, 60: 7.62
+                },
+                '6001+': {
+                    12: 8.67, 24: 8.67, 36: 8.67, 48: 8.27, 60: 7.62
+                }
+            },
+            
+            // STANDARD PAYANT
+            standard: {
+                '0-3000': {
+                    5: 19.50, 10: 18.64, 12: 17.41, 20: 17.41, 24: 17.41, 30: 15.23, 36: 15.05
+                },
+                '3001-6000': {
+                    5: 15.87, 10: 15.87, 12: 15.87, 20: 15.87, 24: 15.87, 30: 15.23, 36: 15.05, 48: 15.87, 60: 15.87
+                },
+                '6001+': {
+                    5: 8.67, 10: 8.67, 12: 8.67, 20: 8.67, 24: 8.67, 30: 8.67, 36: 8.67, 48: 8.67, 60: 8.67
+                }
+            }
+        };
+
+        // --- CONFIGURATION ---
+        const config = {
+            standard: {
+                color: '#E60000',
+                defaultTaeg: 18.64,
+                monthsOptions: [5, 10, 12, 20, 24, 30, 36, 48, 60],
+                defaultMonth: 10
+            },
+            cuisine: {
+                color: '#004d99',
+                defaultTaeg: 4.90, 
+                debitRate: 4.79,
+                insuranceRate: 0.1412,
+                insuranceTaeg: 3.20,
+                monthsOptions: [12, 24, 36, 48, 60, 72, 84],
+                defaultMonth: 60
+            },
+            sansfrais: {
+                color: '#27ae60',
+                defaultTaeg: 0,
+                monthsOptions: [5, 10, 12, 20],
+                defaultMonth: 10
+            }
+        };
+
+        let currentMode = 'standard';
+        let sansFraisType = 'standard';
+
+        // --- DOM ELEMENTS ---
+        const inputs = {
+            nbArticles: document.getElementById('input-nb-articles'),
+            productsContainer: document.getElementById('products-container'),
+            months: document.getElementById('input-months'),
+            taeg: document.getElementById('input-taeg')
+        };
+
+        const display = {
+            payment: document.getElementById('display-payment'),
+            monthsCount: document.getElementById('display-months-count'),
+            productPrice: document.getElementById('display-product-price'),
+            financedAmount: document.getElementById('display-financed-amount'),
+            cost: document.getElementById('display-cost'),
+            total: document.getElementById('display-total'),
+            legal: document.getElementById('legal-text'),
+            priceHero: document.getElementById('price-hero'),
+            taegHint: document.getElementById('taeg-hint'),
+            voucherBox: document.getElementById('voucher-box'),
+            voucherAmount: document.getElementById('display-voucher'),
+            capitalBox: document.getElementById('capital-reprise-box'),
+            cap20: document.getElementById('cap-20'),
+            cap30: document.getElementById('cap-30'),
+            netGainDisplay: document.getElementById('net-gain-display'),
+            netGainText: document.getElementById('net-gain-text'),
+            subSelector: document.getElementById('sub-type-selector')
+        };
+
+        // --- FONCTIONS ---
+
+        function formatEuro(num) {
+            return num.toLocaleString('fr-FR', {style: 'currency', currency: 'EUR'});
+        }
+
+        function calculatePMT(amount, annualRatePercent, months) {
+            if (annualRatePercent === 0) return amount / months;
+            const monthlyRate = annualRatePercent / 100 / 12;
+            return (amount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months));
+        }
+
+        function getTranche(amount) {
+            if (amount <= 3000) return '0-3000';
+            if (amount <= 6000) return '3001-6000';
+            return '6001+';
+        }
+
+        function getAutoTAEG(amount, months, mode, typeSF) {
+            const tranche = getTranche(amount);
+            let bareme;
+            
+            if (mode === 'sansfrais') {
+                bareme = typeSF === 'cuisine' ? TAEG_BAREME.sansfrais_cuisine : TAEG_BAREME.sansfrais_standard;
+            } else if (mode === 'standard') {
+                bareme = TAEG_BAREME.standard;
+            } else {
+                return config.cuisine.defaultTaeg;
+            }
+            
+            if (bareme[tranche] && bareme[tranche][months] !== undefined) {
+                return bareme[tranche][months];
+            }
+            
+            return 0;
+        }
+
+        function updateStandardDurationList(amount) {
+            let availableMonths = [5, 10, 12, 20, 24, 30, 36];
+            
+            if (amount >= 3000) {
+                availableMonths.push(48);
+            }
+            
+            if (amount >= 3000) {
+                availableMonths.push(60);
+            }
+
+            const currentVal = parseInt(inputs.months.value);
+            inputs.months.innerHTML = '';
+            let newSelected = null;
+
+            availableMonths.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m + ' mois';
+                inputs.months.appendChild(opt);
+                
+                if (m === currentVal) newSelected = m;
+            });
+
+            if (newSelected) {
+                inputs.months.value = newSelected;
+            } else {
+                inputs.months.value = availableMonths.includes(36) ? 36 : availableMonths[availableMonths.length - 1];
+            }
+        }
+
+        function renderProducts() {
+            const count = parseInt(inputs.nbArticles.value);
+            const container = inputs.productsContainer;
+            const currentRows = container.getElementsByClassName('product-row');
+            const currentCount = currentRows.length;
+
+            if (count > currentCount) {
+                for (let i = currentCount + 1; i <= count; i++) {
+                    container.insertAdjacentHTML('beforeend', generateProductHTML(i));
+                    updateGLDSubCats(i); 
+                }
+            } else if (count < currentCount) {
+                for (let i = currentCount; i > count; i--) {
+                    currentRows[i-1].remove();
+                }
+            }
+            refreshAllRowsUI();
+            updateCalculation();
+        }
+
+        function generateProductHTML(index) {
+            return `
+            <div class="product-row" id="product-row-${index}">
+                <div class="product-header">
+                    <div><span class="product-badge">${index}</span> Article ${index}</div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Prix de l'article (€)</label>
+                    <input type="number" id="price-${index}" value="599.00" step="0.01" oninput="updateCalculation()">
+                </div>
+
+                <div class="gld-wrapper">
+                    <label class="gld-toggle-label">
+                        <input type="checkbox" id="gld-check-${index}" onchange="toggleGLDRow(${index})">
+                        <i class="fas fa-shield-alt" style="margin-right:8px;"></i> Garantie (GLD)
+                    </label>
+                    
+                    <div class="gld-options" id="gld-options-${index}" style="display:none;">
+                        
+                        <div id="gld-selectors-block-${index}">
+                            <div class="input-group" style="margin-bottom:10px;">
+                                <label style="font-size:0.8rem; margin-bottom:4px;">Famille de produit</label>
+                                <select id="gld-family-${index}" onchange="updateGLDSubCats(${index})">
+                                    <option value="electro">Électroménager / TV</option>
+                                    <option value="meuble">Meuble / Literie</option>
+                                </select>
+                            </div>
+                            
+                            <div class="gld-row">
+                                <select id="gld-subcat-${index}" onchange="updatePremiumState(${index})">
+                                    <!-- Rempli par JS -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="gld-row">
+                            <select id="gld-level-${index}" onchange="updateCalculation()">
+                                <option value="1">1★ Essentiel</option>
+                                <option value="3" selected>3★ Sérénité / Power</option>
+                                <option value="4" id="opt-premium-${index}" disabled>💎 Premium</option>
+                            </select>
+                        </div>
+                        
+                        <div style="text-align:right; font-size:0.9rem; font-weight:bold; color:var(--gld-color);">
+                            Coût Garantie : <span id="gld-cost-display-${index}">0,00 €</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+        }
+
+        function toggleGLDRow(index) {
+            const check = document.getElementById(`gld-check-${index}`);
+            const options = document.getElementById(`gld-options-${index}`);
+            options.style.display = check.checked ? 'block' : 'none';
+            updateCalculation();
+        }
+
+        function updateGLDSubCats(index) {
+            const familyEl = document.getElementById(`gld-family-${index}`);
+            const subcatEl = document.getElementById(`gld-subcat-${index}`);
+            if(!familyEl || !subcatEl) return;
+            
+            const family = familyEl.value;
+            const subcats = LABELS[family];
+            subcatEl.innerHTML = '';
+            
+            for (const [key, label] of Object.entries(subcats)) {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.text = label;
+                subcatEl.appendChild(opt);
+            }
+            updatePremiumState(index);
+        }
+
+        function updatePremiumState(index) {
+            const familyEl = document.getElementById(`gld-family-${index}`);
+            const subcatEl = document.getElementById(`gld-subcat-${index}`);
+            const optPremium = document.getElementById(`opt-premium-${index}`);
+            const levelSel = document.getElementById(`gld-level-${index}`);
+            if(!familyEl || !subcatEl || !optPremium || !levelSel) return;
+
+            const family = familyEl.value;
+            const subcat = subcatEl.value;
+
+            if (family === 'meuble' && subcat === 'siege') {
+                optPremium.disabled = false;
+                optPremium.textContent = "💎 Premium (Siège)";
+            } else {
+                optPremium.disabled = true;
+                optPremium.textContent = "💎 Premium (Non dispo)";
+                if (levelSel.value === "4") levelSel.value = "3";
+            }
+            updateCalculation();
+        }
+
+        function refreshAllRowsUI() {
+            const count = document.getElementsByClassName('product-row').length;
+            for(let i=1; i<=count; i++) {
+                const selectorsBlock = document.getElementById(`gld-selectors-block-${i}`);
+                if (!selectorsBlock) continue;
+
+                if (currentMode === 'cuisine' || (currentMode === 'sansfrais' && sansFraisType === 'cuisine')) {
+                    selectorsBlock.style.display = 'none';
+                } else {
+                    selectorsBlock.style.display = 'block';
+                }
+            }
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            const conf = config[mode];
+
+            document.querySelectorAll('.mode-option').forEach(el => {
+                el.classList.toggle('active', el.dataset.value === mode);
+            });
+
+            document.documentElement.style.setProperty('--primary-color', conf.color);
+            display.priceHero.className = 'price-hero'; 
+            if(mode === 'cuisine') display.priceHero.classList.add('cuisine-mode');
+            if(mode === 'sansfrais') display.priceHero.classList.add('sansfrais-mode');
+
+            if(mode === 'sansfrais') {
+                display.subSelector.style.display = 'block';
+                setSansFraisType(sansFraisType); 
+            } else {
+                display.subSelector.style.display = 'none';
+                refreshAllRowsUI();
+                
+                inputs.months.innerHTML = '';
+                conf.monthsOptions.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = m + ' mois';
+                    if(m === conf.defaultMonth) opt.selected = true;
+                    inputs.months.appendChild(opt);
+                });
+            }
+
+            inputs.taeg.value = conf.defaultTaeg;
+            if (mode === 'standard') {
+                inputs.taeg.disabled = false;
+                display.taegHint.textContent = "Taux automatique selon nouveau barème BUT 2025";
+            } else {
+                inputs.taeg.disabled = true;
+                display.taegHint.textContent = mode === 'sansfrais' ? "Crédit gratuit ou compensé selon type" : "Taux fixe promotionnel Cuisine";
+            }
+
+            updateCalculation();
+        }
+
+        function setSansFraisType(type) {
+            sansFraisType = type;
+            document.getElementById('sub-btn-standard').classList.toggle('active', type === 'standard');
+            document.getElementById('sub-btn-cuisine').classList.toggle('active', type === 'cuisine');
+
+            refreshAllRowsUI();
+
+            const options = type === 'cuisine' ? [12, 24, 36, 48, 60] : [5, 10, 12, 20];
+            const currentVal = parseInt(inputs.months.value);
+            
+            inputs.months.innerHTML = '';
+            options.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m + ' mois';
+                if(m === currentVal || (type === 'cuisine' && m === 12 && !options.includes(currentVal))) opt.selected = true;
+                inputs.months.appendChild(opt);
+            });
+
+            updateCalculation();
+        }
+
+        function calculateWarrantyForOneItem(price, family, subcat, level, mode, typeSF) {
+            let effectiveType = 'standard';
+            if (mode === 'cuisine') effectiveType = 'cuisine';
+            else if (mode === 'sansfrais' && typeSF === 'cuisine') effectiveType = 'cuisine';
+            
+            let useFamily = family;
+            let useSubcat = subcat;
+            if (effectiveType === 'cuisine') {
+                useFamily = 'meuble';
+                useSubcat = 'cuisine';
+            } 
+
+            const ranges = PRICES[useFamily][useSubcat];
+            if (!ranges) return 0;
+            const range = ranges.find(r => price <= r[0]);
+            if (!range) return 0;
+
+            let cost = 0;
+            if (useFamily === 'electro') {
+                if (level === 1) cost = range[1];
+                else if (level === 3) cost = range[2];
+            } else {
+                if (level === 1) cost = range[1];
+                else if (level === 3) cost = range[2];
+                else if (level === 4) cost = range[3];
+            }
+            return cost;
+        }
+
+        function updateCalculation() {
+            const count = document.getElementsByClassName('product-row').length;
+            let totalProductPrice = 0;
+            let totalGldCost = 0;
+            let eligiblePriceForReprise = 0;
+            let hasAtLeastOneGld = false;
+
+            for (let i = 1; i <= count; i++) {
+                const priceInput = document.getElementById(`price-${i}`);
+                if(!priceInput) continue;
+
+                const price = parseFloat(priceInput.value) || 0;
+                totalProductPrice += price;
+
+                const gldCheck = document.getElementById(`gld-check-${i}`);
+                if (gldCheck && gldCheck.checked) {
+                    hasAtLeastOneGld = true;
+                    eligiblePriceForReprise += price;
+                    const family = document.getElementById(`gld-family-${i}`).value;
+                    const subcat = document.getElementById(`gld-subcat-${i}`).value;
+                    const level = parseInt(document.getElementById(`gld-level-${i}`).value);
+                    
+                    const cost = calculateWarrantyForOneItem(price, family, subcat, level, currentMode, sansFraisType);
+                    const displayEl = document.getElementById(`gld-cost-display-${i}`);
+                    if (cost === null) {
+                        displayEl.textContent = "N/A";
+                        displayEl.style.color = "red";
+                    } else {
+                        displayEl.textContent = formatEuro(cost);
+                        displayEl.style.color = "var(--gld-color)";
+                        totalGldCost += cost;
+                    }
+                } else {
+                     const displayEl = document.getElementById(`gld-cost-display-${i}`);
+                     if(displayEl) displayEl.textContent = "0,00 €";
+                }
+            }
+
+            const financedAmount = totalProductPrice + totalGldCost;
+            
+            // Mise à jour dynamique des durées disponibles en mode standard
+            if (currentMode === 'standard') {
+                updateStandardDurationList(financedAmount);
+            }
+            
+            const months = parseInt(inputs.months.value);
+            
+            // Calcul automatique du TAEG selon le nouveau barème
+            const autoRate = getAutoTAEG(financedAmount, months, currentMode, sansFraisType);
+            inputs.taeg.value = autoRate.toFixed(2);
+
+            let annualRate = parseFloat(inputs.taeg.value) || 0;
+            let calculationRate = currentMode === 'cuisine' ? config.cuisine.debitRate : annualRate;
+
+            const monthlyPayment = calculatePMT(financedAmount, calculationRate, months);
+            const totalDue = monthlyPayment * months;
+            const totalCost = totalDue - financedAmount;
+
+            display.payment.textContent = formatEuro(monthlyPayment);
+            display.monthsCount.textContent = months;
+            display.productPrice.textContent = formatEuro(totalProductPrice);
+            
+            if(totalGldCost > 0) {
+                 display.financedAmount.innerHTML = `${formatEuro(financedAmount)} <br><span style="font-size:0.8rem; color:#d35400; font-weight:normal;">(Dont Garanties : ${formatEuro(totalGldCost)})</span>`;
+            } else {
+                 display.financedAmount.textContent = formatEuro(financedAmount);
+            }
+           
+            display.cost.textContent = formatEuro(totalCost);
+            display.total.textContent = formatEuro(totalDue);
+
+            // Affichage bon d'achat uniquement en mode standard payant et jusqu'à 20 mois
+            display.voucherBox.style.display = (currentMode === 'standard' && months <= 20) ? 'block' : 'none';
+            if (currentMode === 'standard' && months <= 20) display.voucherAmount.textContent = formatEuro(totalCost);
+
+            let showCapital = hasAtLeastOneGld && (currentMode === 'standard' || (currentMode === 'sansfrais' && sansFraisType === 'standard'));
+
+            if(showCapital) {
+                display.capitalBox.style.display = 'block';
+                const cap20 = eligiblePriceForReprise * 0.20;
+                const cap30 = eligiblePriceForReprise * 0.30;
+                display.cap20.textContent = formatEuro(cap20);
+                display.cap30.textContent = formatEuro(cap30);
+
+                if (totalGldCost > 0) {
+                    display.netGainDisplay.style.display = 'block';
+                    if (cap30 > totalGldCost) {
+                        display.netGainText.style.background = "#2e7d32";
+                        display.netGainText.innerHTML = `<i class="fas fa-check"></i> Capital Reprise (30%) > Coût des garanties !`;
+                    } else {
+                        const realCost = totalGldCost - cap30;
+                        display.netGainText.style.background = "#0277bd";
+                        display.netGainText.innerHTML = `<i class="fas fa-info-circle"></i> Coût réel net : ${formatEuro(realCost)} après reprise`;
+                    }
+                } else {
+                    display.netGainDisplay.style.display = 'none';
+                }
+            } else {
+                display.capitalBox.style.display = 'none';
+            }
+
+            generateLegal(financedAmount, months, annualRate, calculationRate, monthlyPayment, totalCost, totalDue, totalGldCost);
+            generateComparison(financedAmount);
+        }
+
+        function generateComparison(amount) {
+            const grid = document.getElementById('comparison-grid');
+            grid.innerHTML = '';
+            
+            const currentMonths = parseInt(inputs.months.value);
+            const currentModeName = currentMode;
+            const currentSFType = sansFraisType;
+            
+            // Détecter si c'est un projet cuisine
+            const isCuisineProject = (currentModeName === 'cuisine' || (currentModeName === 'sansfrais' && currentSFType === 'cuisine'));
+            
+            // Liste de toutes les formules possibles (sans les 3x)
+            const formulas = [
+                // Sans Frais Standard
+                { mode: 'sansfrais', type: 'standard', months: 5, label: '5x Sans Frais', category: 'gratuit' },
+                { mode: 'sansfrais', type: 'standard', months: 10, label: '10x Sans Frais', category: 'gratuit' },
+                { mode: 'sansfrais', type: 'standard', months: 12, label: '12x Sans Frais', category: 'gratuit' },
+                { mode: 'sansfrais', type: 'standard', months: 20, label: '20x Sans Frais', category: 'gratuit' },
+                
+                // Standard Payant avec bonus
+                { mode: 'standard', months: 5, label: '5x Payant', category: 'payant', bonus: true },
+                { mode: 'standard', months: 10, label: '10x Payant', category: 'payant', bonus: true },
+                { mode: 'standard', months: 12, label: '12x Payant', category: 'payant', bonus: true },
+                { mode: 'standard', months: 20, label: '20x Payant', category: 'payant', bonus: true },
+                
+                // Standard Payant sans bonus
+                { mode: 'standard', months: 24, label: '24x Payant', category: 'payant', bonus: false },
+                { mode: 'standard', months: 30, label: '30x Payant', category: 'payant', bonus: false },
+                { mode: 'standard', months: 36, label: '36x Payant', category: 'payant', bonus: false },
+                { mode: 'standard', months: 48, label: '48x Payant', category: 'payant', bonus: false, minAmount: 3000 },
+                { mode: 'standard', months: 60, label: '60x Payant', category: 'payant', bonus: false, minAmount: 3000 }
+            ];
+            
+            // Ajouter les offres cuisine uniquement si c'est un projet cuisine
+            if (isCuisineProject) {
+                formulas.push(
+                    // Sans Frais Cuisine (compensé)
+                    { mode: 'sansfrais', type: 'cuisine', months: 12, label: '12x Cuisine', category: 'compense' },
+                    { mode: 'sansfrais', type: 'cuisine', months: 24, label: '24x Cuisine', category: 'compense' },
+                    { mode: 'sansfrais', type: 'cuisine', months: 36, label: '36x Cuisine', category: 'compense' },
+                    { mode: 'sansfrais', type: 'cuisine', months: 48, label: '48x Cuisine', category: 'compense' },
+                    { mode: 'sansfrais', type: 'cuisine', months: 60, label: '60x Cuisine', category: 'compense' },
+                    
+                    // Cuisine classique
+                    { mode: 'cuisine', months: 12, label: '12x Cuisine Pro', category: 'cuisine' },
+                    { mode: 'cuisine', months: 24, label: '24x Cuisine Pro', category: 'cuisine' },
+                    { mode: 'cuisine', months: 36, label: '36x Cuisine Pro', category: 'cuisine' },
+                    { mode: 'cuisine', months: 48, label: '48x Cuisine Pro', category: 'cuisine' },
+                    { mode: 'cuisine', months: 60, label: '60x Cuisine Pro', category: 'cuisine' },
+                    { mode: 'cuisine', months: 72, label: '72x Cuisine Pro', category: 'cuisine' },
+                    { mode: 'cuisine', months: 84, label: '84x Cuisine Pro', category: 'cuisine' }
+                );
+            }
+            
+            formulas.forEach(formula => {
+                const card = document.createElement('div');
+                card.className = 'comparison-card';
+                
+                // Vérifier disponibilité
+                let available = true;
+                let unavailableReason = '';
+                
+                if (formula.minAmount && amount < formula.minAmount) {
+                    available = false;
+                    unavailableReason = `Minimum ${formula.minAmount}€`;
+                }
+                
+                // Vérifier si c'est l'option active
+                const isActive = (formula.mode === currentModeName && formula.months === currentMonths && 
+                                 (formula.mode !== 'sansfrais' || formula.type === currentSFType));
+                
+                if (!available) {
+                    card.classList.add('unavailable');
+                } else if (isActive) {
+                    card.classList.add('active-option');
+                }
+                
+                // Calculer mensualité et TAEG
+                let taeg, payment, cost, badge;
+                
+                if (available) {
+                    taeg = getAutoTAEG(amount, formula.months, formula.mode, formula.type);
+                    const calcRate = formula.mode === 'cuisine' ? config.cuisine.debitRate : taeg;
+                    payment = calculatePMT(amount, calcRate, formula.months);
+                    cost = (payment * formula.months) - amount;
+                    
+                    // Coût à 0 pour les offres gratuites
+                    if (formula.category === 'gratuit') {
+                        cost = 0;
+                    }
+                    
+                    // Déterminer le badge
+                    if (isActive) {
+                        badge = '<span class="comparison-badge badge-active">SÉLECTIONNÉ</span>';
+                    } else if (formula.category === 'gratuit') {
+                        badge = '<span class="comparison-badge badge-gratuit">GRATUIT</span>';
+                    } else if (formula.category === 'compense') {
+                        badge = '<span class="comparison-badge badge-compense">COMPENSÉ</span>';
+                    } else if (formula.bonus) {
+                        badge = '<span class="comparison-badge badge-bonus">BONUS</span>';
+                    } else {
+                        badge = '<span class="comparison-badge badge-payant">PAYANT</span>';
+                    }
+                } else {
+                    badge = '<span class="comparison-badge badge-unavailable">NON DISPO</span>';
+                }
+                
+                card.innerHTML = `
+                    <div class="comparison-header">
+                        <span class="comparison-title">${formula.label}</span>
+                        ${badge}
+                    </div>
+                    ${available ? `
+                        <div class="comparison-payment">${formatEuro(payment)}</div>
+                        <div class="comparison-details">
+                            <div>TAEG : <span class="comparison-taeg">${taeg.toFixed(2)}%</span></div>
+                            <div>Total : ${formatEuro(payment * formula.months)}</div>
+                            <div>Coût : ${formatEuro(cost)}</div>
+                        </div>
+                        ${formula.bonus ? `<div class="comparison-bonus"><i class="fas fa-gift"></i> Intérêts remboursés : <strong>${formatEuro(cost)}</strong></div>` : ''}
+                    ` : `
+                        <div class="comparison-unavailable-msg">
+                            <i class="fas fa-lock"></i><br>${unavailableReason}
+                        </div>
+                    `}
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function generateLegal(amount, months, taeg, debitRate, payment, cost, total, gldCost) {
+            let html = `<strong>Un crédit vous engage et doit être remboursé. Vérifiez vos capacités de remboursement avant de vous engager.</strong><br><br>`;
+            if (gldCost > 0) html += `Financement incluant une ou plusieurs extensions de garantie pour un montant de ${formatEuro(gldCost)}.<br>`;
+
+            if (currentMode === 'sansfrais') {
+                if (sansFraisType === 'cuisine') {
+                    html += `Offre de crédit compensé (TAEG client : 4,90%) pour un achat de ${formatEuro(amount)}.<br>`;
+                    html += `Vous remboursez <strong>${months} mensualités de ${formatEuro(payment)}</strong>. Montant total dû : <strong>${formatEuro(total)}</strong>.<br>`;
+                    html += `TAEG réel : ${taeg.toFixed(2)}%. Une partie du coût du crédit est prise en charge par le vendeur.`;
+                } else {
+                    html += `Offre de crédit gratuit (Taux 0%) pour un achat de ${formatEuro(amount)}.<br>`;
+                    html += `Vous remboursez <strong>${months} mensualités de ${formatEuro(payment)}</strong>. Montant total dû : <strong>${formatEuro(total)}</strong>.<br>`;
+                    html += `Coût du crédit pris en charge par le vendeur.`;
+                }
+            } else if (currentMode === 'cuisine') {
+                const insuranceMonthly = amount * (config.cuisine.insuranceRate / 100);
+                html += `Exemple pour un crédit accessoire à une vente de ${formatEuro(amount)} sur ${months} mois au <strong>TAEG fixe de ${taeg.toFixed(2)}%</strong> (taux débiteur fixe de ${debitRate.toFixed(2)}%).<br>`;
+                html += `Remboursement en <strong>${months} mensualités de ${formatEuro(payment)}</strong> (hors assurance facultative).<br>`;
+                html += `Montant total dû : <strong>${formatEuro(total)}</strong>. Coût du crédit : ${formatEuro(cost)}.<br>`;
+                html += `<span style="color:#555">Coût de l'assurance facultative (Décès, PTIA, ITT) : ${formatEuro(insuranceMonthly)}/mois en sus, soit un coût total de ${formatEuro(insuranceMonthly * months)} (TAEA : ${config.cuisine.insuranceTaeg}%).</span>`;
+            } else {
+                html += `Offre de crédit accessoire à une vente de ${formatEuro(amount)} sur ${months} mois au <strong>TAEG fixe de ${taeg.toFixed(2)}%</strong>.<br>`;
+                html += `Vous remboursez <strong>${months} mensualités de ${formatEuro(payment)}</strong>. Montant total dû : <strong>${formatEuro(total)}</strong>.<br>`;
+                if (months <= 20) {
+                    html += `Le coût du crédit (${formatEuro(cost)}) est intégralement remboursé sous forme de bon d'achat.`;
+                } else {
+                    html += `Coût du crédit : ${formatEuro(cost)}. <span style="color:#e74c3c; font-weight:bold;">Au-delà de 20 mois, les intérêts ne sont pas remboursés.</span>`;
+                }
+            }
+            display.legal.innerHTML = html;
+        }
+
+        inputs.taeg.addEventListener('input', updateCalculation);
+        inputs.months.addEventListener('change', updateCalculation);
+
+        renderProducts();
+        setMode('standard');
+
+        // --- FONCTION DE TÉLÉCHARGEMENT PDF ---
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            
+            // --- FILIGRANE EN ARRIÈRE-PLAN ---
+            doc.setTextColor(220, 220, 220);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'italic');
+            
+            // Texte filigrane répété sur toute la page
+            const watermarkText = "Document interne - Usage strictement réservé à la formation interne";
+            const lineHeight = 15;
+            const textWidth = 140;
+            
+            for (let y = 30; y < pageHeight - 20; y += lineHeight) {
+                for (let x = 10; x < pageWidth - 10; x += textWidth) {
+                    doc.text(watermarkText, x, y, { 
+                        angle: 45, 
+                        maxWidth: textWidth - 5 
+                    });
+                }
+            }
+            
+            // --- BANDEAU HAUT ---
+            doc.setFillColor(230, 0, 0);
+            doc.rect(0, 0, pageWidth, 15, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.setFont(undefined, 'bold');
+            doc.text("DOCUMENT INTERNE - NON DESTINÉ AUX CLIENTS", pageWidth / 2, 9, { align: 'center' });
+            
+            // --- CONTENU ---
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text("Synthèse Financement BUT", pageWidth / 2, 30, { align: 'center' });
+            
+            const today = new Date();
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Date : ${today.toLocaleDateString('fr-FR')}`, pageWidth / 2, 38, { align: 'center' });
+            
+            let yPos = 50;
+            
+            // Mode actuel
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            let modeLabel = currentMode === 'standard' ? 'Standard' : currentMode === 'cuisine' ? 'Cuisine' : 'Sans Frais';
+            if (currentMode === 'sansfrais') modeLabel += ` (${sansFraisType === 'cuisine' ? 'Cuisine' : 'Standard'})`;
+            doc.text(`Mode : ${modeLabel}`, 15, yPos);
+            yPos += 10;
+            
+            // Détails du projet
+            const count = document.getElementsByClassName('product-row').length;
+            let totalProductPrice = 0;
+            let totalGldCost = 0;
+            
+            for (let i = 1; i <= count; i++) {
+                const priceInput = document.getElementById(`price-${i}`);
+                if (!priceInput) continue;
+                const price = parseFloat(priceInput.value) || 0;
+                totalProductPrice += price;
+                
+                const gldCheck = document.getElementById(`gld-check-${i}`);
+                if (gldCheck && gldCheck.checked) {
+                    const family = document.getElementById(`gld-family-${i}`).value;
+                    const subcat = document.getElementById(`gld-subcat-${i}`).value;
+                    const level = parseInt(document.getElementById(`gld-level-${i}`).value);
+                    const cost = calculateWarrantyForOneItem(price, family, subcat, level, currentMode, sansFraisType);
+                    if (cost !== null) totalGldCost += cost;
+                }
+            }
+            
+            const financedAmount = totalProductPrice + totalGldCost;
+            const months = parseInt(inputs.months.value);
+            const taeg = parseFloat(inputs.taeg.value);
+            const calcRate = currentMode === 'cuisine' ? config.cuisine.debitRate : taeg;
+            const payment = calculatePMT(financedAmount, calcRate, months);
+            const totalDue = payment * months;
+            const totalCost = totalDue - financedAmount;
+            
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Prix total articles : ${formatEuro(totalProductPrice)}`, 15, yPos);
+            yPos += 7;
+            doc.text(`Garanties (GLD) : ${formatEuro(totalGldCost)}`, 15, yPos);
+            yPos += 7;
+            doc.setFont(undefined, 'bold');
+            doc.text(`Montant financé : ${formatEuro(financedAmount)}`, 15, yPos);
+            yPos += 10;
+            
+            // Encadré mensualité
+            doc.setFillColor(240, 240, 240);
+            doc.roundedRect(15, yPos, pageWidth - 30, 25, 3, 3, 'F');
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text(`Mensualité : ${formatEuro(payment)}`, pageWidth / 2, yPos + 10, { align: 'center' });
+            doc.setFontSize(11);
+            doc.text(`sur ${months} mois - TAEG ${taeg.toFixed(2)}%`, pageWidth / 2, yPos + 18, { align: 'center' });
+            yPos += 35;
+            
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Total dû : ${formatEuro(totalDue)}`, 15, yPos);
+            yPos += 7;
+            doc.text(`Coût du crédit : ${formatEuro(totalCost)}`, 15, yPos);
+            yPos += 12;
+            
+            // Synthèse comparative
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text("Synthèse des options disponibles", 15, yPos);
+            yPos += 8;
+            
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'bold');
+            doc.text("Formule", 15, yPos);
+            doc.text("Mensualité", 70, yPos);
+            doc.text("TAEG", 110, yPos);
+            doc.text("Total", 135, yPos);
+            doc.text("Coût", 165, yPos);
+            yPos += 5;
+            doc.setLineWidth(0.5);
+            doc.line(15, yPos, pageWidth - 15, yPos);
+            yPos += 5;
+            
+            // Récupérer toutes les formules
+            const isCuisineProject = (currentMode === 'cuisine' || (currentMode === 'sansfrais' && sansFraisType === 'cuisine'));
+            const formulas = [
+                { mode: 'sansfrais', type: 'standard', months: 5, label: '5x Sans Frais' },
+                { mode: 'sansfrais', type: 'standard', months: 10, label: '10x Sans Frais' },
+                { mode: 'sansfrais', type: 'standard', months: 12, label: '12x Sans Frais' },
+                { mode: 'sansfrais', type: 'standard', months: 20, label: '20x Sans Frais' },
+                { mode: 'standard', months: 5, label: '5x Payant' },
+                { mode: 'standard', months: 10, label: '10x Payant' },
+                { mode: 'standard', months: 12, label: '12x Payant' },
+                { mode: 'standard', months: 20, label: '20x Payant' },
+                { mode: 'standard', months: 24, label: '24x Payant' },
+                { mode: 'standard', months: 30, label: '30x Payant' },
+                { mode: 'standard', months: 36, label: '36x Payant' }
+            ];
+            
+            if (financedAmount >= 3000) {
+                formulas.push({ mode: 'standard', months: 48, label: '48x Payant' });
+                formulas.push({ mode: 'standard', months: 60, label: '60x Payant' });
+            }
+            
+            if (isCuisineProject) {
+                formulas.push(
+                    { mode: 'sansfrais', type: 'cuisine', months: 12, label: '12x Cuisine' },
+                    { mode: 'sansfrais', type: 'cuisine', months: 24, label: '24x Cuisine' },
+                    { mode: 'sansfrais', type: 'cuisine', months: 36, label: '36x Cuisine' },
+                    { mode: 'sansfrais', type: 'cuisine', months: 48, label: '48x Cuisine' },
+                    { mode: 'sansfrais', type: 'cuisine', months: 60, label: '60x Cuisine' }
+                );
+            }
+            
+            doc.setFont(undefined, 'normal');
+            formulas.forEach((formula, index) => {
+                if (yPos > pageHeight - 30) {
+                    doc.addPage();
+                    yPos = 25;
+                    
+                    // Répéter le filigrane sur la nouvelle page
+                    doc.setTextColor(220, 220, 220);
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'italic');
+                    for (let y = 30; y < pageHeight - 20; y += lineHeight) {
+                        for (let x = 10; x < pageWidth - 10; x += textWidth) {
+                            doc.text(watermarkText, x, y, { angle: 45, maxWidth: textWidth - 5 });
+                        }
+                    }
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'normal');
+                }
+                
+                const taegFormula = getAutoTAEG(financedAmount, formula.months, formula.mode, formula.type);
+                const calcRateFormula = formula.mode === 'cuisine' ? config.cuisine.debitRate : taegFormula;
+                const paymentFormula = calculatePMT(financedAmount, calcRateFormula, formula.months);
+                const totalFormula = paymentFormula * formula.months;
+                let costFormula = totalFormula - financedAmount;
+                
+                if (formula.mode === 'sansfrais' && formula.type === 'standard') {
+                    costFormula = 0;
+                }
+                
+                doc.text(formula.label, 15, yPos);
+                doc.text(formatEuro(paymentFormula), 70, yPos);
+                doc.text(`${taegFormula.toFixed(2)}%`, 110, yPos);
+                doc.text(formatEuro(totalFormula), 135, yPos);
+                doc.text(formatEuro(costFormula), 165, yPos);
+                yPos += 6;
+            });
+            
+            // --- BANDEAU BAS ---
+            doc.setFillColor(230, 0, 0);
+            doc.rect(0, pageHeight - 15, pageWidth, 15, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.setFont(undefined, 'bold');
+            doc.text("DOCUMENT INTERNE - USAGE STRICTEMENT RÉSERVÉ À LA FORMATION INTERNE", pageWidth / 2, pageHeight - 7, { align: 'center' });
+            
+            // Sauvegarder
+            const filename = `Synthese_Financement_${today.toISOString().split('T')[0]}.pdf`;
+            doc.save(filename);
+        }
+    </script>
+</body>
+</html>
