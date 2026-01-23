@@ -1412,7 +1412,7 @@
             standard: {
                 color: '#E60000',
                 defaultTaeg: 18.64,
-                monthsOptions: [3, 5, 10, 12, 20, 30, 36, 48, 60],
+                monthsOptions: [5, 10, 12, 20, 30],
                 defaultMonth: 10
             },
             cuisine: {
@@ -1421,13 +1421,13 @@
                 debitRate: 4.79,
                 insuranceRate: 0.1412,
                 insuranceTaeg: 3.20,
-                monthsOptions: [12, 24, 36, 48, 60, 72, 84],
-                defaultMonth: 60
+                monthsOptions: [24, 36, 48, 60],
+                defaultMonth: 36
             },
             sansfrais: {
                 color: '#27ae60',
                 defaultTaeg: 0,
-                monthsOptions: [3, 5, 10, 12, 20],
+                monthsOptions: [5, 10],
                 defaultMonth: 10
             }
         };
@@ -1505,17 +1505,9 @@
         }
 
         function updateStandardDurationList(amount) {
-            // Durées disponibles selon le montant et le type de carte - Barème T1 2026
-            // Payant: 3, 5, 10, 12, 20, 30, 36
-            let availableMonths = [3, 5, 10, 12, 20, 30, 36];
-
-            // 48x et 60x:
-            // - DTS: uniquement disponibles à partir de 3001€ (loi usure pour 0-3000€)
-            // - VAT: disponibles pour toutes tranches
-            if (amount > 3000 || cardType === 'vat') {
-                availableMonths.push(48);
-                availableMonths.push(60);
-            }
+            // Durées disponibles - Barème T1 2026
+            // Payant: 5, 10, 12, 20, 30
+            let availableMonths = [5, 10, 12, 20, 30];
 
             const currentVal = parseInt(inputs.months.value);
             inputs.months.innerHTML = '';
@@ -1766,11 +1758,11 @@
         function updateSansFraisDurationList() {
             let options;
             if (sansFraisType === 'cuisine') {
-                // Compensé: DTS = 12-24, VAT = 12-60
-                options = cardType === 'dts' ? [12, 24] : [12, 24, 36, 48, 60];
+                // Cuisine Gratuit: 12x et 20x
+                options = [12, 20];
             } else {
-                // Gratuit: DTS = jusqu'à 30, VAT = jusqu'à 60
-                options = cardType === 'dts' ? [3, 5, 10, 12, 20, 30] : [3, 5, 10, 12, 20, 30, 36, 48, 60];
+                // Standard Gratuit: 5x et 10x
+                options = [5, 10];
             }
 
             const currentVal = parseInt(inputs.months.value);
@@ -1973,45 +1965,31 @@
             // Liste de toutes les formules possibles - Barème T1 2026
             const formulas = [
                 // Sans Frais Standard (GRATUIT - TAEG 0%)
-                { mode: 'sansfrais', type: 'standard', months: 3, label: '3x Sans Frais', category: 'gratuit', maxAmount: 3000 },
-                { mode: 'sansfrais', type: 'standard', months: 5, label: '5x Sans Frais', category: 'gratuit', maxAmount: 3000 },
+                { mode: 'sansfrais', type: 'standard', months: 5, label: '5x Sans Frais', category: 'gratuit', minAmount: 80 },
                 { mode: 'sansfrais', type: 'standard', months: 10, label: '10x Sans Frais', category: 'gratuit' },
-                { mode: 'sansfrais', type: 'standard', months: 12, label: '12x Sans Frais', category: 'gratuit' },
-                { mode: 'sansfrais', type: 'standard', months: 20, label: '20x Sans Frais', category: 'gratuit' },
 
-                // Standard Payant avec bonus (intérêts remboursés jusqu'à 20 mois)
-                { mode: 'standard', months: 3, label: '3x Payant', category: 'payant', bonus: true },
+                // Standard Payant avec bonus (intérêts remboursés jusqu'à 20 mois inclus)
                 { mode: 'standard', months: 5, label: '5x Payant', category: 'payant', bonus: true },
                 { mode: 'standard', months: 10, label: '10x Payant', category: 'payant', bonus: true },
                 { mode: 'standard', months: 12, label: '12x Payant', category: 'payant', bonus: true },
-                { mode: 'standard', months: 20, label: '20x Payant', category: 'payant', bonus: true },
+                { mode: 'standard', months: 20, label: '20x Payant', category: 'payant', bonus: true, minAmount: 1000 },
 
                 // Standard Payant sans bonus
-                { mode: 'standard', months: 24, label: '24x Payant', category: 'payant', bonus: false },
-                { mode: 'standard', months: 30, label: '30x Payant', category: 'payant', bonus: false },
-                { mode: 'standard', months: 36, label: '36x Payant', category: 'payant', bonus: false },
-                { mode: 'standard', months: 48, label: '48x Payant', category: 'payant', bonus: false, minAmount: 3000 },
-                { mode: 'standard', months: 60, label: '60x Payant', category: 'payant', bonus: false, minAmount: 3000 }
+                { mode: 'standard', months: 30, label: '30x Payant', category: 'payant', bonus: false, minAmount: 1500 }
             ];
             
             // Ajouter les offres cuisine uniquement si c'est un projet cuisine
             if (isCuisineProject) {
                 formulas.push(
-                    // Sans Frais Cuisine (compensé)
-                    { mode: 'sansfrais', type: 'cuisine', months: 12, label: '12x Cuisine', category: 'compense' },
-                    { mode: 'sansfrais', type: 'cuisine', months: 24, label: '24x Cuisine', category: 'compense' },
-                    { mode: 'sansfrais', type: 'cuisine', months: 36, label: '36x Cuisine', category: 'compense' },
-                    { mode: 'sansfrais', type: 'cuisine', months: 48, label: '48x Cuisine', category: 'compense' },
-                    { mode: 'sansfrais', type: 'cuisine', months: 60, label: '60x Cuisine', category: 'compense' },
-                    
-                    // Cuisine classique
-                    { mode: 'cuisine', months: 12, label: '12x Cuisine Pro', category: 'cuisine' },
-                    { mode: 'cuisine', months: 24, label: '24x Cuisine Pro', category: 'cuisine' },
-                    { mode: 'cuisine', months: 36, label: '36x Cuisine Pro', category: 'cuisine' },
-                    { mode: 'cuisine', months: 48, label: '48x Cuisine Pro', category: 'cuisine' },
-                    { mode: 'cuisine', months: 60, label: '60x Cuisine Pro', category: 'cuisine' },
-                    { mode: 'cuisine', months: 72, label: '72x Cuisine Pro', category: 'cuisine' },
-                    { mode: 'cuisine', months: 84, label: '84x Cuisine Pro', category: 'cuisine' }
+                    // Sans Frais Cuisine (GRATUIT)
+                    { mode: 'sansfrais', type: 'cuisine', months: 12, label: '12x Cuisine Gratuit', category: 'gratuit' },
+                    { mode: 'sansfrais', type: 'cuisine', months: 20, label: '20x Cuisine Gratuit', category: 'gratuit' },
+
+                    // Cuisine à 4,9% TAEG
+                    { mode: 'cuisine', months: 24, label: '24x Cuisine 4,9%', category: 'cuisine' },
+                    { mode: 'cuisine', months: 36, label: '36x Cuisine 4,9%', category: 'cuisine' },
+                    { mode: 'cuisine', months: 48, label: '48x Cuisine 4,9%', category: 'cuisine' },
+                    { mode: 'cuisine', months: 60, label: '60x Cuisine 4,9%', category: 'cuisine' }
                 );
             }
             
@@ -2361,29 +2339,21 @@
             const formulas = [
                 { mode: 'sansfrais', type: 'standard', months: 5, label: '5x Sans Frais' },
                 { mode: 'sansfrais', type: 'standard', months: 10, label: '10x Sans Frais' },
-                { mode: 'sansfrais', type: 'standard', months: 12, label: '12x Sans Frais' },
-                { mode: 'sansfrais', type: 'standard', months: 20, label: '20x Sans Frais' },
                 { mode: 'standard', months: 5, label: '5x Payant' },
                 { mode: 'standard', months: 10, label: '10x Payant' },
                 { mode: 'standard', months: 12, label: '12x Payant' },
                 { mode: 'standard', months: 20, label: '20x Payant' },
-                { mode: 'standard', months: 24, label: '24x Payant' },
-                { mode: 'standard', months: 30, label: '30x Payant' },
-                { mode: 'standard', months: 36, label: '36x Payant' }
+                { mode: 'standard', months: 30, label: '30x Payant' }
             ];
-            
-            if (financedAmount >= 3000) {
-                formulas.push({ mode: 'standard', months: 48, label: '48x Payant' });
-                formulas.push({ mode: 'standard', months: 60, label: '60x Payant' });
-            }
-            
+
             if (isCuisineProject) {
                 formulas.push(
-                    { mode: 'sansfrais', type: 'cuisine', months: 12, label: '12x Cuisine' },
-                    { mode: 'sansfrais', type: 'cuisine', months: 24, label: '24x Cuisine' },
-                    { mode: 'sansfrais', type: 'cuisine', months: 36, label: '36x Cuisine' },
-                    { mode: 'sansfrais', type: 'cuisine', months: 48, label: '48x Cuisine' },
-                    { mode: 'sansfrais', type: 'cuisine', months: 60, label: '60x Cuisine' }
+                    { mode: 'sansfrais', type: 'cuisine', months: 12, label: '12x Cuisine Gratuit' },
+                    { mode: 'sansfrais', type: 'cuisine', months: 20, label: '20x Cuisine Gratuit' },
+                    { mode: 'cuisine', months: 24, label: '24x Cuisine 4,9%' },
+                    { mode: 'cuisine', months: 36, label: '36x Cuisine 4,9%' },
+                    { mode: 'cuisine', months: 48, label: '48x Cuisine 4,9%' },
+                    { mode: 'cuisine', months: 60, label: '60x Cuisine 4,9%' }
                 );
             }
             
