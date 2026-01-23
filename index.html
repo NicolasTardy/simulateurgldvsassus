@@ -517,6 +517,60 @@
             color: white;
         }
 
+        /* --- VAT/DTS SELECTOR --- */
+        .card-type-selector {
+            display: block;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border: 1px solid #90caf9;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .card-type-title {
+            font-size: 0.8rem;
+            color: #1565c0;
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .card-type-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .card-btn {
+            padding: 8px 16px;
+            border: 2px solid #1565c0;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            background: white;
+            color: #1565c0;
+            font-weight: 600;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-btn:hover {
+            background: #e3f2fd;
+        }
+
+        .card-btn.active {
+            background: #1565c0;
+            color: white;
+        }
+
+        .card-btn i {
+            font-size: 1rem;
+        }
+
         /* --- MULTI-PRODUCT STYLES --- */
         .product-row {
             background: #fff;
@@ -1054,6 +1108,23 @@
                     </div>
                 </div>
 
+                <!-- SELECTEUR VAT/DTS (Type de carte) -->
+                <div id="card-type-selector" class="card-type-selector">
+                    <div class="card-type-title tooltip-wrapper">
+                        Type de financement
+                        <span class="help-icon"><i class="fas fa-question"></i></span>
+                        <span class="tooltip-text">DTS = avec ouverture de carte BUT. VAT = sans carte, financement simple.</span>
+                    </div>
+                    <div class="card-type-options">
+                        <div class="card-btn active" id="card-btn-dts" onclick="setCardType('dts')">
+                            <i class="fas fa-credit-card"></i> DTS (avec carte)
+                        </div>
+                        <div class="card-btn" id="card-btn-vat" onclick="setCardType('vat')">
+                            <i class="fas fa-file-invoice"></i> VAT (sans carte)
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ÉTAPE 2 - BANNER -->
                 <div class="info-banner" style="margin-top: 10px;">
                     <i class="fas fa-shopping-cart"></i>
@@ -1282,47 +1353,56 @@
             }
         };
 
-        // --- NOUVEAUX BAREMES TAEG 2025 ---
-        // --- NOUVEAUX BAREMES TAEG T1 2026 (Tarification 1er janvier 2026) ---
+        // --- BAREMES TAEG T1 2026 (Tarification 1er janvier 2026) ---
+        // Structure: TAEG_BAREME[type_credit][card_type][tranche][mois]
+        // DTS = avec carte BUT (barèmes 170, 223, 256, 423)
+        // VAT = sans carte (barèmes 229, 270, 284, 490)
         const TAEG_BAREME = {
-            // SANS FRAIS STANDARD (GRATUIT) - TAEG client = 0%
-            // Le coût est pris en charge par le vendeur
+            // GRATUIT (SANS FRAIS STANDARD) - TAEG client = 0%
+            // DTS: 3-5x uniquement 0-3000€, 10-30x toutes tranches
+            // VAT: 3-5x uniquement 0-3000€, 10-60x toutes tranches
             sansfrais_standard: {
-                '0-3000': {
-                    3: 0, 5: 0, 10: 0, 12: 0, 20: 0
+                dts: {
+                    '0-3000': { 3: 0, 5: 0, 10: 0, 12: 0, 20: 0, 30: 0 },
+                    '3001-6000': { 10: 0, 12: 0, 20: 0, 30: 0 },
+                    '6001+': { 10: 0, 12: 0, 20: 0, 30: 0 }
                 },
-                '3001-6000': {
-                    10: 0, 12: 0, 20: 0
-                },
-                '6001+': {
-                    10: 0, 12: 0, 20: 0
+                vat: {
+                    '0-3000': { 3: 0, 5: 0, 10: 0, 12: 0, 20: 0, 30: 0, 36: 0, 48: 0, 60: 0 },
+                    '3001-6000': { 10: 0, 12: 0, 20: 0, 30: 0, 36: 0, 48: 0, 60: 0 },
+                    '6001+': { 10: 0, 12: 0, 20: 0, 30: 0, 36: 0, 48: 0, 60: 0 }
                 }
             },
 
-            // SANS FRAIS CUISINE (COMPENSÉ) - TAEG client = 4.90%
-            // Le client paie 4.90%, le reste est compensé par le vendeur
+            // COMPENSÉ (SANS FRAIS CUISINE) - TAEG client = 4.90%
+            // DTS: 12-24 mois uniquement
+            // VAT: 12-60 mois
             sansfrais_cuisine: {
-                '0-3000': {
-                    12: 4.90, 24: 4.90, 36: 4.90, 48: 4.90, 60: 4.90
+                dts: {
+                    '0-3000': { 12: 4.90, 24: 4.90 },
+                    '3001-6000': { 12: 4.90, 24: 4.90 },
+                    '6001+': { 12: 4.90, 24: 4.90 }
                 },
-                '3001-6000': {
-                    12: 4.90, 24: 4.90, 36: 4.90, 48: 4.90, 60: 4.90
-                },
-                '6001+': {
-                    12: 4.90, 24: 4.90, 36: 4.90, 48: 4.90, 60: 4.90
+                vat: {
+                    '0-3000': { 12: 4.90, 24: 4.90, 36: 4.90, 48: 4.90, 60: 4.90 },
+                    '3001-6000': { 12: 4.90, 24: 4.90, 36: 4.90, 48: 4.90, 60: 4.90 },
+                    '6001+': { 12: 4.90, 24: 4.90, 36: 4.90, 48: 4.90, 60: 4.90 }
                 }
             },
 
-            // STANDARD PAYANT - Barème T1 2026
+            // PAYANT (STANDARD) - Barème T1 2026
+            // DTS: 48-60x non disponibles pour 0-3000€ (loi usure)
+            // VAT: 48-60x disponibles pour toutes tranches
             standard: {
-                '0-3000': {
-                    3: 21.95, 5: 19.50, 10: 18.64, 12: 17.41, 20: 17.41, 24: 17.41, 30: 15.23, 36: 15.05
+                dts: {
+                    '0-3000': { 3: 21.95, 5: 19.50, 10: 18.64, 12: 17.41, 20: 17.41, 30: 15.23, 36: 15.05 },
+                    '3001-6000': { 3: 15.87, 5: 15.87, 10: 15.87, 12: 15.87, 20: 15.87, 30: 15.23, 36: 15.05, 48: 15.87, 60: 15.87 },
+                    '6001+': { 3: 8.67, 5: 8.67, 10: 8.67, 12: 8.67, 20: 8.67, 30: 8.67, 36: 8.67, 48: 8.67, 60: 8.67 }
                 },
-                '3001-6000': {
-                    3: 15.79, 5: 15.79, 10: 15.79, 12: 15.79, 20: 15.79, 24: 15.79, 30: 15.23, 36: 15.05, 48: 15.87, 60: 15.87
-                },
-                '6001+': {
-                    3: 8.69, 5: 8.67, 10: 8.67, 12: 8.67, 20: 8.67, 24: 8.67, 30: 8.67, 36: 8.67, 48: 8.67, 60: 8.67
+                vat: {
+                    '0-3000': { 3: 21.76, 5: 19.50, 10: 18.63, 12: 17.40, 20: 17.40, 30: 15.14, 36: 15.05, 48: 15.05, 60: 15.05 },
+                    '3001-6000': { 3: 15.87, 5: 15.87, 10: 15.87, 12: 15.87, 20: 15.87, 30: 15.14, 36: 15.05, 48: 15.05, 60: 15.05 },
+                    '6001+': { 3: 8.67, 5: 8.67, 10: 8.67, 12: 8.67, 20: 8.67, 30: 8.67, 36: 8.67, 48: 8.67, 60: 8.67 }
                 }
             }
         };
@@ -1332,7 +1412,7 @@
             standard: {
                 color: '#E60000',
                 defaultTaeg: 18.64,
-                monthsOptions: [3, 5, 10, 12, 20, 24, 30, 36, 48, 60],
+                monthsOptions: [3, 5, 10, 12, 20, 30, 36, 48, 60],
                 defaultMonth: 10
             },
             cuisine: {
@@ -1354,6 +1434,7 @@
 
         let currentMode = 'standard';
         let sansFraisType = 'standard';
+        let cardType = 'dts'; // 'dts' = avec carte BUT, 'vat' = sans carte
 
         // --- DOM ELEMENTS ---
         const inputs = {
@@ -1380,7 +1461,8 @@
             cap30: document.getElementById('cap-30'),
             netGainDisplay: document.getElementById('net-gain-display'),
             netGainText: document.getElementById('net-gain-text'),
-            subSelector: document.getElementById('sub-type-selector')
+            subSelector: document.getElementById('sub-type-selector'),
+            cardTypeSelector: document.getElementById('card-type-selector')
         };
 
         // --- FONCTIONS ---
@@ -1401,31 +1483,36 @@
             return '6001+';
         }
 
-        function getAutoTAEG(amount, months, mode, typeSF) {
+        function getAutoTAEG(amount, months, mode, typeSF, cType) {
             const tranche = getTranche(amount);
+            const ct = cType || cardType; // utilise le type de carte actuel si non spécifié
             let bareme;
-            
+
             if (mode === 'sansfrais') {
-                bareme = typeSF === 'cuisine' ? TAEG_BAREME.sansfrais_cuisine : TAEG_BAREME.sansfrais_standard;
+                const sfBareme = typeSF === 'cuisine' ? TAEG_BAREME.sansfrais_cuisine : TAEG_BAREME.sansfrais_standard;
+                bareme = sfBareme[ct];
             } else if (mode === 'standard') {
-                bareme = TAEG_BAREME.standard;
+                bareme = TAEG_BAREME.standard[ct];
             } else {
                 return config.cuisine.defaultTaeg;
             }
-            
-            if (bareme[tranche] && bareme[tranche][months] !== undefined) {
+
+            if (bareme && bareme[tranche] && bareme[tranche][months] !== undefined) {
                 return bareme[tranche][months];
             }
-            
+
             return 0;
         }
 
         function updateStandardDurationList(amount) {
-            // Durées disponibles selon le montant - Barème T1 2026
-            let availableMonths = [3, 5, 10, 12, 20, 24, 30, 36];
+            // Durées disponibles selon le montant et le type de carte - Barème T1 2026
+            // Payant: 3, 5, 10, 12, 20, 30, 36
+            let availableMonths = [3, 5, 10, 12, 20, 30, 36];
 
-            // 48x et 60x uniquement disponibles à partir de 3000€
-            if (amount >= 3000) {
+            // 48x et 60x:
+            // - DTS: uniquement disponibles à partir de 3001€ (loi usure pour 0-3000€)
+            // - VAT: disponibles pour toutes tranches
+            if (amount > 3000 || cardType === 'vat') {
                 availableMonths.push(48);
                 availableMonths.push(60);
             }
@@ -1624,31 +1711,40 @@
             });
 
             document.documentElement.style.setProperty('--primary-color', conf.color);
-            display.priceHero.className = 'price-hero'; 
+            display.priceHero.className = 'price-hero';
             if(mode === 'cuisine') display.priceHero.classList.add('cuisine-mode');
             if(mode === 'sansfrais') display.priceHero.classList.add('sansfrais-mode');
 
+            // Afficher/masquer le sélecteur VAT/DTS (masqué en mode Cuisine)
+            display.cardTypeSelector.style.display = (mode === 'cuisine') ? 'none' : 'block';
+
             if(mode === 'sansfrais') {
                 display.subSelector.style.display = 'block';
-                setSansFraisType(sansFraisType); 
+                setSansFraisType(sansFraisType);
             } else {
                 display.subSelector.style.display = 'none';
                 refreshAllRowsUI();
-                
-                inputs.months.innerHTML = '';
-                conf.monthsOptions.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m;
-                    opt.textContent = m + ' mois';
-                    if(m === conf.defaultMonth) opt.selected = true;
-                    inputs.months.appendChild(opt);
-                });
+
+                if (mode === 'standard') {
+                    // En mode standard, mettre à jour les durées selon le montant et cardType
+                    updateStandardDurationList(getTotalFinancedAmount());
+                } else {
+                    // Mode cuisine - durées fixes
+                    inputs.months.innerHTML = '';
+                    conf.monthsOptions.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m;
+                        opt.textContent = m + ' mois';
+                        if(m === conf.defaultMonth) opt.selected = true;
+                        inputs.months.appendChild(opt);
+                    });
+                }
             }
 
             inputs.taeg.value = conf.defaultTaeg;
             if (mode === 'standard') {
                 inputs.taeg.disabled = false;
-                display.taegHint.textContent = "Taux automatique selon nouveau barème BUT 2025";
+                display.taegHint.textContent = "Taux automatique selon barème T1 2026";
             } else {
                 inputs.taeg.disabled = true;
                 display.taegHint.textContent = mode === 'sansfrais' ? "Crédit gratuit ou compensé selon type" : "Taux fixe promotionnel Cuisine";
@@ -1663,20 +1759,70 @@
             document.getElementById('sub-btn-cuisine').classList.toggle('active', type === 'cuisine');
 
             refreshAllRowsUI();
+            updateSansFraisDurationList();
+            updateCalculation();
+        }
 
-            const options = type === 'cuisine' ? [12, 24, 36, 48, 60] : [3, 5, 10, 12, 20];
+        function updateSansFraisDurationList() {
+            let options;
+            if (sansFraisType === 'cuisine') {
+                // Compensé: DTS = 12-24, VAT = 12-60
+                options = cardType === 'dts' ? [12, 24] : [12, 24, 36, 48, 60];
+            } else {
+                // Gratuit: DTS = jusqu'à 30, VAT = jusqu'à 60
+                options = cardType === 'dts' ? [3, 5, 10, 12, 20, 30] : [3, 5, 10, 12, 20, 30, 36, 48, 60];
+            }
+
             const currentVal = parseInt(inputs.months.value);
-            
             inputs.months.innerHTML = '';
+
             options.forEach(m => {
                 const opt = document.createElement('option');
                 opt.value = m;
                 opt.textContent = m + ' mois';
-                if(m === currentVal || (type === 'cuisine' && m === 12 && !options.includes(currentVal))) opt.selected = true;
+                if (m === currentVal) opt.selected = true;
                 inputs.months.appendChild(opt);
             });
 
+            // Si la valeur actuelle n'est plus disponible, sélectionner la première
+            if (!options.includes(currentVal)) {
+                inputs.months.value = options[0];
+            }
+        }
+
+        function setCardType(type) {
+            cardType = type;
+            document.getElementById('card-btn-dts').classList.toggle('active', type === 'dts');
+            document.getElementById('card-btn-vat').classList.toggle('active', type === 'vat');
+
+            // Mettre à jour les durées disponibles selon le mode actuel
+            if (currentMode === 'sansfrais') {
+                updateSansFraisDurationList();
+            } else if (currentMode === 'standard') {
+                updateStandardDurationList(getTotalFinancedAmount());
+            }
+
             updateCalculation();
+        }
+
+        function getTotalFinancedAmount() {
+            let total = 0;
+            const count = parseInt(inputs.nbArticles.value);
+            for (let i = 1; i <= count; i++) {
+                const priceEl = document.getElementById(`price-${i}`);
+                if (priceEl) total += parseFloat(priceEl.value) || 0;
+
+                const gldCheck = document.getElementById(`gld-check-${i}`);
+                if (gldCheck && gldCheck.checked) {
+                    const family = document.getElementById(`gld-family-${i}`).value;
+                    const subcat = document.getElementById(`gld-subcat-${i}`).value;
+                    const level = parseInt(document.getElementById(`gld-level-${i}`).value);
+                    const price = parseFloat(document.getElementById(`price-${i}`).value) || 0;
+                    const cost = calculateWarrantyForOneItem(price, family, subcat, level, currentMode, sansFraisType);
+                    if (cost !== null) total += cost;
+                }
+            }
+            return total;
         }
 
         function calculateWarrantyForOneItem(price, family, subcat, level, mode, typeSF) {
