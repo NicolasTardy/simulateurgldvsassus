@@ -1915,11 +1915,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
         function updateStandardDurationList(amount) {
             // Durées disponibles - Barème T1 2026
-            // Payant: 5, 10, 12, 20, 30, 60 (60x à partir de 3000€)
+            // Payant: 5, 10, 12, 20, 30, 60
             let availableMonths = [5, 10, 12, 20, 30];
 
-            // 60x disponible à partir de 3000€
-            if (amount >= 3000) {
+            // 60x : DTS à partir de 3001€ (loi usure), VAT pour tous montants
+            if (cardType === 'vat' || amount >= 3001) {
                 availableMonths.push(60);
             }
 
@@ -2390,7 +2390,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
                 // Standard Payant sans bonus
                 { mode: 'standard', months: 30, label: '30x Payant', category: 'payant', bonus: false, minAmount: 1500 },
-                { mode: 'standard', months: 60, label: '60x Payant', category: 'payant', bonus: false, minAmount: 3000 }
+                { mode: 'standard', months: 60, label: '60x Payant', category: 'payant', bonus: false, minAmountDTS: 3001 }
             ];
             
             // Ajouter les offres cuisine uniquement si c'est un projet cuisine
@@ -2425,7 +2425,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                     available = false;
                     unavailableReason = `Maximum ${formula.maxAmount}€`;
                 }
-                
+
+                // 60x DTS uniquement à partir de 3001€ (loi usure)
+                if (formula.minAmountDTS && cardType === 'dts' && amount < formula.minAmountDTS) {
+                    available = false;
+                    unavailableReason = `DTS: minimum ${formula.minAmountDTS}€`;
+                }
+
                 // Vérifier si c'est l'option active
                 const isActive = (formula.mode === currentModeName && formula.months === currentMonths && 
                                  (formula.mode !== 'sansfrais' || formula.type === currentSFType));
@@ -2761,8 +2767,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                 { mode: 'standard', months: 30, label: '30x Payant' }
             ];
 
-            // 60x disponible à partir de 3000€
-            if (financedAmount >= 3000) {
+            // 60x : VAT pour tous montants, DTS à partir de 3001€
+            if (cardType === 'vat' || financedAmount >= 3001) {
                 formulas.push({ mode: 'standard', months: 60, label: '60x Payant' });
             }
 
