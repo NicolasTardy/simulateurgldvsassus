@@ -18,6 +18,328 @@
             --success: #27ae60;
             --highlight: #f1c40f;
             --gld-color: #d35400;
+            --tooltip-bg: #34495e;
+        }
+
+        /* --- TOOLTIPS & HELP BUBBLES --- */
+        .tooltip-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .help-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            cursor: help;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .help-icon:hover {
+            transform: scale(1.15);
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            z-index: 1000;
+            background: var(--tooltip-bg);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: normal;
+            line-height: 1.4;
+            width: 220px;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: calc(100% + 10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+
+        .tooltip-text::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: var(--tooltip-bg);
+        }
+
+        .help-icon:hover + .tooltip-text,
+        .tooltip-wrapper:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Tooltip position variants */
+        .tooltip-text.tooltip-right {
+            left: calc(100% + 10px);
+            bottom: auto;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .tooltip-text.tooltip-right::after {
+            top: 50%;
+            left: -8px;
+            transform: translateY(-50%);
+            border: 8px solid transparent;
+            border-right-color: var(--tooltip-bg);
+        }
+
+        .tooltip-text.tooltip-bottom {
+            bottom: auto;
+            top: calc(100% + 10px);
+        }
+
+        .tooltip-text.tooltip-bottom::after {
+            top: -16px;
+            border: 8px solid transparent;
+            border-bottom-color: var(--tooltip-bg);
+        }
+
+        /* --- INFO BANNERS --- */
+        .info-banner {
+            background: linear-gradient(135deg, #e8f4fd, #d6eaf8);
+            border: 1px solid #85c1e9;
+            border-left: 4px solid #3498db;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: #2c3e50;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .info-banner i {
+            color: #3498db;
+            font-size: 1.1rem;
+            margin-top: 2px;
+        }
+
+        .info-banner.success-banner {
+            background: linear-gradient(135deg, #e8f8f5, #d5f5e3);
+            border-color: #82e0aa;
+            border-left-color: #27ae60;
+        }
+
+        .info-banner.success-banner i {
+            color: #27ae60;
+        }
+
+        .info-banner.warning-banner {
+            background: linear-gradient(135deg, #fef9e7, #fcf3cf);
+            border-color: #f7dc6f;
+            border-left-color: #f39c12;
+        }
+
+        .info-banner.warning-banner i {
+            color: #f39c12;
+        }
+
+        /* --- STEP INDICATOR --- */
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 0 10px;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 60%;
+            width: 80%;
+            height: 2px;
+            background: #ddd;
+        }
+
+        .step.active:not(:last-child)::after {
+            background: linear-gradient(90deg, var(--primary-color), #ddd);
+        }
+
+        .step.completed:not(:last-child)::after {
+            background: var(--primary-color);
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ddd;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+            z-index: 1;
+        }
+
+        .step.active .step-number,
+        .step.completed .step-number {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.7rem;
+            color: #888;
+            text-align: center;
+        }
+
+        .step.active .step-label,
+        .step.completed .step-label {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .step-help {
+            width: 14px;
+            height: 14px;
+            font-size: 8px;
+            margin-left: 3px;
+            vertical-align: middle;
+        }
+
+        .step .tooltip-text {
+            width: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1001;
+        }
+
+        /* --- QUICK TIP PULSE --- */
+        .pulse-hint {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(52, 152, 219, 0); }
+        }
+
+        /* --- GUIDE DES ÉTAPES EN HAUT --- */
+        .steps-guide {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 25px;
+            color: white;
+        }
+
+        .steps-guide-title {
+            text-align: center;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .steps-guide-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .guide-step {
+            flex: 1;
+            min-width: 140px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 12px 15px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: default;
+        }
+
+        .guide-step:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+
+        .guide-step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: white;
+            color: #667eea;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .guide-step-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .guide-step-desc {
+            font-size: 0.75rem;
+            opacity: 0.85;
+            line-height: 1.3;
+        }
+
+        .guide-step-icon {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .steps-guide-grid {
+                flex-direction: column;
+            }
+            .guide-step {
+                display: flex;
+                align-items: center;
+                text-align: left;
+                gap: 12px;
+            }
+            .guide-step-number {
+                margin-bottom: 0;
+            }
+            .guide-step-content {
+                flex: 1;
+            }
         }
 
         body {
@@ -631,19 +953,95 @@
             </button>
         </header>
 
+        <!-- GUIDE DES ÉTAPES -->
+        <div class="steps-guide">
+            <div class="steps-guide-title">
+                <i class="fas fa-route"></i> Comment utiliser ce simulateur
+            </div>
+            <div class="steps-guide-grid">
+                <div class="guide-step">
+                    <div class="guide-step-number">1</div>
+                    <div class="guide-step-content">
+                        <div class="guide-step-icon"><i class="fas fa-sliders-h"></i></div>
+                        <div class="guide-step-title">Choisir le mode</div>
+                        <div class="guide-step-desc">Standard, Cuisine ou Sans Frais selon le projet client</div>
+                    </div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-number">2</div>
+                    <div class="guide-step-content">
+                        <div class="guide-step-icon"><i class="fas fa-shopping-cart"></i></div>
+                        <div class="guide-step-title">Ajouter les articles</div>
+                        <div class="guide-step-desc">Saisir le prix TTC de chaque article de la facture</div>
+                    </div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-number">3</div>
+                    <div class="guide-step-content">
+                        <div class="guide-step-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div class="guide-step-title">Ajouter la GLD</div>
+                        <div class="guide-step-desc">Optionnel : cocher la garantie et choisir le niveau</div>
+                    </div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-number">4</div>
+                    <div class="guide-step-content">
+                        <div class="guide-step-icon"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="guide-step-title">Choisir la durée</div>
+                        <div class="guide-step-desc">Sélectionner le nombre de mensualités souhaité</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="main-body">
             <!-- COLONNE GAUCHE : PARAMÈTRES -->
             <div class="inputs-section">
-                
+
+                <!-- INDICATEUR D'ÉTAPES -->
+                <div class="step-indicator">
+                    <div class="step active tooltip-wrapper" id="step-1">
+                        <div class="step-number">1</div>
+                        <div class="step-label">Mode <span class="help-icon step-help"><i class="fas fa-question"></i></span></div>
+                        <span class="tooltip-text tooltip-bottom">Choisissez le type de financement : Standard (avec intérêts remboursés), Cuisine (taux réduit) ou Sans Frais (gratuit).</span>
+                    </div>
+                    <div class="step tooltip-wrapper" id="step-2">
+                        <div class="step-number">2</div>
+                        <div class="step-label">Articles <span class="help-icon step-help"><i class="fas fa-question"></i></span></div>
+                        <span class="tooltip-text tooltip-bottom">Ajoutez les articles du client et saisissez leurs prix TTC.</span>
+                    </div>
+                    <div class="step tooltip-wrapper" id="step-3">
+                        <div class="step-number">3</div>
+                        <div class="step-label">Garantie <span class="help-icon step-help"><i class="fas fa-question"></i></span></div>
+                        <span class="tooltip-text tooltip-bottom">Optionnel : cochez la GLD pour chaque article et choisissez le niveau de couverture souhaité.</span>
+                    </div>
+                    <div class="step tooltip-wrapper" id="step-4">
+                        <div class="step-number">4</div>
+                        <div class="step-label">Durée <span class="help-icon step-help"><i class="fas fa-question"></i></span></div>
+                        <span class="tooltip-text tooltip-bottom">Sélectionnez la durée de remboursement. Jusqu'à 20 mois, les intérêts sont remboursés en bon d'achat !</span>
+                    </div>
+                </div>
+
+                <!-- BANNIÈRE DE BIENVENUE -->
+                <div class="info-banner" id="welcome-banner">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <strong>Bienvenue !</strong> Commencez par choisir le type de financement ci-dessous, puis renseignez les articles de votre client.
+                    </div>
+                </div>
+
                 <div class="mode-selector" id="mode-selector">
-                    <div class="mode-option active" data-value="standard" onclick="setMode('standard')">
+                    <div class="mode-option active tooltip-wrapper" data-value="standard" onclick="setMode('standard')">
                         <i class="fas fa-tv"></i> Standard
+                        <span class="tooltip-text tooltip-bottom">Financement classique avec intérêts remboursés jusqu'à 20 mois. Idéal pour électroménager et meubles.</span>
                     </div>
-                    <div class="mode-option" data-value="cuisine" onclick="setMode('cuisine')">
+                    <div class="mode-option tooltip-wrapper" data-value="cuisine" onclick="setMode('cuisine')">
                         <i class="fas fa-utensils"></i> Cuisine
+                        <span class="tooltip-text tooltip-bottom">Financement spécial projets cuisine. Taux avantageux jusqu'à 84 mois.</span>
                     </div>
-                    <div class="mode-option" data-value="sansfrais" onclick="setMode('sansfrais')">
+                    <div class="mode-option tooltip-wrapper" data-value="sansfrais" onclick="setMode('sansfrais')">
                         <i class="fas fa-percent"></i> Sans Frais
+                        <span class="tooltip-text tooltip-bottom">Crédit gratuit (0%) jusqu'à 20 mois. Le coût est pris en charge par le vendeur.</span>
                     </div>
                 </div>
 
@@ -658,7 +1056,11 @@
 
                 <!-- SELECTEUR NOMBRE ARTICLES -->
                 <div class="input-group">
-                    <label>Nombre d'articles sur la facture</label>
+                    <label class="tooltip-wrapper">
+                        Nombre d'articles sur la facture
+                        <span class="help-icon"><i class="fas fa-question"></i></span>
+                        <span class="tooltip-text">Ajoutez autant d'articles que nécessaire. Chaque article peut avoir sa propre garantie GLD.</span>
+                    </label>
                     <select id="input-nb-articles" onchange="renderProducts()">
                         <option value="1">1 Article</option>
                         <option value="2">2 Articles</option>
@@ -674,14 +1076,22 @@
                 </div>
 
                 <div class="input-group">
-                    <label>Durée du financement (Mois)</label>
+                    <label class="tooltip-wrapper">
+                        Durée du financement (Mois)
+                        <span class="help-icon"><i class="fas fa-question"></i></span>
+                        <span class="tooltip-text">Plus la durée est courte, moins le client paie d'intérêts. En mode Standard, les intérêts sont remboursés jusqu'à 20 mois.</span>
+                    </label>
                     <select id="input-months">
                         <!-- Options générées par JS -->
                     </select>
                 </div>
 
                 <div class="input-group">
-                    <label>TAEG (%)</label>
+                    <label class="tooltip-wrapper">
+                        TAEG (%)
+                        <span class="help-icon"><i class="fas fa-question"></i></span>
+                        <span class="tooltip-text">Le TAEG (Taux Annuel Effectif Global) est calculé automatiquement selon le montant et la durée. Il inclut tous les frais du crédit.</span>
+                    </label>
                     <input type="number" id="input-taeg" value="18.64" step="0.01">
                     <small id="taeg-hint" style="color:#888; display:block; margin-top:5px; font-size:0.8rem;"></small>
                 </div>
@@ -690,7 +1100,14 @@
 
             <!-- COLONNE DROITE : RÉSULTATS -->
             <div class="results-section">
-                
+
+                <!-- Titre de section -->
+                <div style="text-align:center; margin-bottom:15px;">
+                    <span style="background:#ecf0f1; padding:6px 15px; border-radius:20px; font-size:0.8rem; color:#7f8c8d; text-transform:uppercase; letter-spacing:1px;">
+                        <i class="fas fa-calculator"></i> Résultat de la simulation
+                    </span>
+                </div>
+
                 <!-- Bloc Mensualité XXL -->
                 <div class="price-hero" id="price-hero">
                     <div class="price-label">Mensualité estimée</div>
@@ -700,23 +1117,38 @@
                     </div>
                 </div>
 
+                <!-- Conseil contextuel -->
+                <div id="advice-banner" class="info-banner" style="margin-bottom:15px;">
+                    <i class="fas fa-lightbulb"></i>
+                    <div id="advice-text">
+                        <strong>Conseil :</strong> En mode Standard jusqu'à 20 mois, les intérêts sont remboursés sous forme de bon d'achat !
+                    </div>
+                </div>
+
                 <!-- Bloc Bon d'achat (Crédit) -->
                 <div id="voucher-box" class="voucher-box">
-                    <div class="voucher-header"><i class="fas fa-check-circle"></i> Intérêts Remboursés</div>
+                    <div class="voucher-header"><i class="fas fa-gift"></i> Intérêts Remboursés</div>
                     <div class="voucher-amount" id="display-voucher">0,00 €</div>
-                    <div style="font-size:0.9rem; color:#7f8c8d;">Sous forme de bon d'achat</div>
+                    <div style="font-size:0.9rem; color:#7f8c8d;">Sous forme de bon d'achat <span class="help-icon" style="width:14px; height:14px; font-size:9px; vertical-align:middle;"><i class="fas fa-question"></i></span></div>
+                    <div style="font-size:0.75rem; color:#27ae60; margin-top:8px;">
+                        <i class="fas fa-check"></i> Le client récupère le coût du crédit !
+                    </div>
                 </div>
 
                 <!-- BLOC CAPITAL REPRISE (GLD) -->
                 <div id="capital-reprise-box" class="capital-reprise-box">
-                    <div class="capital-title"><i class="fas fa-piggy-bank"></i> Capital Reprise Futur</div>
+                    <div class="capital-title tooltip-wrapper" style="justify-content:center;">
+                        <i class="fas fa-piggy-bank"></i> Capital Reprise Futur
+                        <span class="help-icon" style="margin-left:8px;"><i class="fas fa-question"></i></span>
+                        <span class="tooltip-text tooltip-bottom">Si aucun sinistre pendant 5 ans, le client reçoit un bon d'achat pour remplacer son appareil.</span>
+                    </div>
                     <div class="capital-grid">
                         <div class="capital-item">
                             <span class="cap-label">Standard (20%)</span>
                             <span class="cap-value" id="cap-20">0 €</span>
                         </div>
                         <div class="capital-item highlight">
-                            <span class="cap-label">Avec Carte BUT (30%)</span>
+                            <span class="cap-label"><i class="fas fa-credit-card" style="color:#2e7d32;"></i> Avec Carte BUT (30%)</span>
                             <span class="cap-value" id="cap-30">0 €</span>
                         </div>
                     </div>
@@ -724,25 +1156,42 @@
                         <span class="net-gain-tag" id="net-gain-text">Capital Reprise > Coût Garantie</span>
                     </div>
                     <div class="capital-note">
-                        Bon d'achat valable pour le rachat d'un nouvel appareil (Années 5 à 7) si aucun sinistre.
+                        <i class="fas fa-info-circle"></i> Bon d'achat valable pour le rachat d'un nouvel appareil (Années 5 à 7) si aucun sinistre.
                     </div>
                 </div>
 
+                <!-- Grille de détails avec tooltips -->
                 <div class="details-grid">
                     <div class="detail-item">
-                        <span class="detail-label">Prix Total Articles</span>
+                        <span class="detail-label tooltip-wrapper">
+                            Prix Total Articles
+                            <span class="help-icon" style="width:12px; height:12px; font-size:8px;"><i class="fas fa-question"></i></span>
+                            <span class="tooltip-text">Somme des prix de tous les articles (hors garanties).</span>
+                        </span>
                         <span class="detail-value" id="display-product-price">0,00 €</span>
                     </div>
                     <div class="detail-item highlight">
-                        <span class="detail-label">Montant Financé (Avec GLD)</span>
+                        <span class="detail-label tooltip-wrapper">
+                            Montant Financé
+                            <span class="help-icon" style="width:12px; height:12px; font-size:8px;"><i class="fas fa-question"></i></span>
+                            <span class="tooltip-text">Total articles + garanties GLD. C'est ce montant qui est financé par le crédit.</span>
+                        </span>
                         <span class="detail-value" id="display-financed-amount">0,00 €</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Coût total crédit</span>
+                        <span class="detail-label tooltip-wrapper">
+                            Coût total crédit
+                            <span class="help-icon" style="width:12px; height:12px; font-size:8px;"><i class="fas fa-question"></i></span>
+                            <span class="tooltip-text">Intérêts payés sur la durée du crédit. En mode Standard ≤20 mois, ce montant est remboursé !</span>
+                        </span>
                         <span class="detail-value" id="display-cost">0,00 €</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Montant total dû</span>
+                        <span class="detail-label tooltip-wrapper">
+                            Montant total dû
+                            <span class="help-icon" style="width:12px; height:12px; font-size:8px;"><i class="fas fa-question"></i></span>
+                            <span class="tooltip-text">Somme de toutes les mensualités que le client va payer.</span>
+                        </span>
                         <span class="detail-value" id="display-total">0,00 €</span>
                     </div>
                 </div>
@@ -755,8 +1204,15 @@
             <div style="text-align: center; margin-bottom: 15px;">
                 <h2 style="margin: 0; color: #2c3e50; font-size: 1.2rem;">
                     <i class="fas fa-chart-bar"></i> Synthèse des Mensualités Disponibles
+                    <span class="help-icon" style="margin-left:8px; vertical-align:middle;"><i class="fas fa-question"></i></span>
                 </h2>
-                <p style="color: #7f8c8d; font-size: 0.85rem; margin: 5px 0;">Toutes les options de financement pour ce projet</p>
+                <p style="color: #7f8c8d; font-size: 0.85rem; margin: 5px 0;">Comparez toutes les options pour trouver la meilleure formule pour votre client</p>
+                <div style="display:flex; justify-content:center; gap:15px; margin-top:10px; flex-wrap:wrap;">
+                    <span style="font-size:0.75rem; color:#27ae60;"><i class="fas fa-circle"></i> GRATUIT = 0% d'intérêts</span>
+                    <span style="font-size:0.75rem; color:#3498db;"><i class="fas fa-circle"></i> COMPENSÉ = Taux réduit</span>
+                    <span style="font-size:0.75rem; color:#f39c12;"><i class="fas fa-circle"></i> BONUS = Intérêts remboursés</span>
+                    <span style="font-size:0.75rem; color:#e74c3c;"><i class="fas fa-circle"></i> PAYANT = Intérêts à charge</span>
+                </div>
             </div>
             <div id="comparison-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
                 <!-- Généré par JS -->
@@ -786,11 +1242,16 @@
                 tv: [[100,null,19.99],[150,null,39.99],[200,null,49.99],[300,null,69.99],[400,null,89.99],[500,null,119.99],[600,null,129.99],[700,null,139.99],[800,null,169.99],[900,null,189.99],[1000,null,209.99],[1500,null,289.99],[2000,null,339.99],[9999,null,389.99]]
             },
             meuble: {
-                siege: [[50,6.99,9.99,null], [100,19.99,24.99,null], [150,29.99,39.99,null], [250,39.99,49.99,null], [300,44.99,59.99,69.99], [350,49.99,69.99,79.99], [500,59.99,79.99,89.99], [700,74.99,99.99,109.99], [1000,99.99,119.99,129.99], [1500,149.99,169.99,179.99], [2000,189.99,249.99,259.99], [3000,269.99,339.99,349.99], [4000,349.99,449.99,459.99], [9999,399.99,549.99,559.99]],
-                sejour: [[50,9.99,14.99,null], [100,19.99,24.99,null], [200,29.99,39.99,null], [350,39.99,49.99,null], [500,49.99,59.99,null], [1000,69.99,99.99,null], [1500,99.99,159.99,null], [3000,149.99,199.99,null], [5000,199.99,289.99,null], [7000,249.99,599.99,null], [10000,349.99,749.99,null], [99999,499.99,999.99,null]],
-                literie: [[50,9.99,14.99,null], [100,19.99,24.99,null], [200,29.99,39.99,null], [350,39.99,49.99,null], [500,49.99,59.99,null], [1000,69.99,99.99,null], [1500,99.99,159.99,null], [3000,149.99,199.99,null], [5000,199.99,289.99,null], [9999,289.99,null,null]], 
-                cuisine: [[50,9.99,14.99,null], [100,19.99,24.99,null], [200,29.99,39.99,null], [350,39.99,49.99,null], [500,49.99,59.99,null], [1000,69.99,99.99,null], [1500,99.99,159.99,null], [3000,149.99,199.99,null], [9999,289.99,null,null]], 
-                bureau: [[50,9.99,14.99,null], [100,19.99,24.99,null], [200,29.99,39.99,null], [350,39.99,49.99,null], [500,49.99,59.99,null], [1000,69.99,99.99,null], [1500,99.99,159.99,null], [3000,149.99,199.99,null], [9999,289.99,null,null]] 
+                // SIEGE - Tarifs Juillet 2025 (Catalogue GP Meuble SA)
+                siege: [[50,6.99,9.99,null], [100,19.99,24.99,null], [150,29.99,34.99,null], [200,39.99,49.99,null], [250,49.99,59.99,null], [300,59.99,79.99,null], [450,69.99,89.99,null], [550,79.99,99.99,null], [650,89.99,119.99,null], [750,99.99,129.99,null], [1000,109.99,149.99,null], [1500,139.99,189.99,209.99], [2000,179.99,229.99,249.99], [3000,null,null,299.99], [9999,null,null,349.99]],
+                // SEJOUR - Tarifs Juillet 2025 (Catalogue GP Meuble SA)
+                sejour: [[50,9.99,14.99,null], [100,14.99,24.99,null], [150,24.99,39.99,null], [200,29.99,49.99,null], [250,39.99,59.99,null], [300,49.99,69.99,null], [500,69.99,79.99,null], [750,79.99,89.99,null], [1000,89.99,99.99,null], [1200,109.99,119.99,null], [1500,129.99,139.99,null], [2000,149.99,159.99,null], [3000,179.99,189.99,null], [9999,209.99,219.99,null]],
+                // LITERIE - Tarifs Juillet 2025 (Catalogue GP Meuble SA)
+                literie: [[50,6.99,19.99,null], [100,9.99,24.99,null], [200,19.99,34.99,null], [250,29.99,39.99,null], [300,34.99,49.99,null], [350,39.99,59.99,null], [400,44.99,69.99,null], [450,49.99,79.99,null], [500,59.99,89.99,null], [550,69.99,99.99,null], [600,79.99,109.99,null], [650,89.99,119.99,null], [700,99.99,129.99,null], [750,109.99,139.99,null], [800,119.99,149.99,null], [850,129.99,159.99,null], [9999,149.99,169.99,null]],
+                // CUISINE (Meuble) - Tarifs Juillet 2025 - CLASSIQUE uniquement (pas de 1★/3★)
+                cuisine: [[1000,129.99,null,null], [1500,149.99,null,null], [2000,199.99,null,null], [2500,249.99,null,null], [3000,299.99,null,null], [4000,349.99,null,null], [5000,399.99,null,null], [7000,null,null,599.99], [10000,null,null,749.99], [99999,null,null,999.99]],
+                // BUREAU/RANGEMENT - Tarifs Juillet 2025 (Catalogue GP Meuble SA)
+                bureau: [[50,6.99,9.99,null], [100,14.99,19.99,null], [150,19.99,29.99,null], [300,29.99,39.99,null], [9999,39.99,59.99,null]]
             }
         };
 
@@ -801,63 +1262,66 @@
                 refus: "Réfrigérateur US", cave: "Cave à Vin", tv: "Télévision"
             },
             meuble: {
-                siege: "Canapé / Fauteuil", sejour: "Séjour / Rangement", literie: "Literie", cuisine: "Cuisine (Meuble)", bureau: "Bureau"
+                siege: "Canapé / Fauteuil", sejour: "Séjour", literie: "Literie", cuisine: "Cuisine (Meuble)", bureau: "Rangement"
             }
         };
 
         // --- NOUVEAUX BAREMES TAEG 2025 ---
+        // --- NOUVEAUX BAREMES TAEG T1 2026 (Tarification 1er janvier 2026) ---
         const TAEG_BAREME = {
-            // SANS FRAIS STANDARD (Gratuit) - Limité à 20 mois
+            // SANS FRAIS STANDARD (GRATUIT) - TAEG client = 0%
+            // Le coût est pris en charge par le vendeur
             sansfrais_standard: {
                 '0-3000': {
-                    5: 8.47, 10: 4.53, 12: 3.82, 20: 5.45
+                    3: 0, 5: 0, 10: 0, 12: 0, 20: 0
                 },
                 '3001-6000': {
-                    10: 4.53, 12: 3.82, 20: 5.45
+                    10: 0, 12: 0, 20: 0
                 },
                 '6001+': {
-                    10: 4.53, 12: 3.82, 20: 5.45
+                    10: 0, 12: 0, 20: 0
                 }
             },
-            
-            // SANS FRAIS CUISINE (Compensé à 4.90%)
+
+            // SANS FRAIS CUISINE (COMPENSÉ) - TAEG client = 4.90%
+            // Le client paie 4.90%, le reste est compensé par le vendeur
             sansfrais_cuisine: {
                 '0-3000': {
-                    12: 8.95, 24: 9.78, 36: 9.35, 48: 8.27, 60: 7.62
+                    12: 4.90, 24: 4.90, 36: 4.90, 48: 4.90, 60: 4.90
                 },
                 '3001-6000': {
-                    12: 8.95, 24: 9.78, 36: 9.35, 48: 8.27, 60: 7.62
+                    12: 4.90, 24: 4.90, 36: 4.90, 48: 4.90, 60: 4.90
                 },
                 '6001+': {
-                    12: 8.67, 24: 8.67, 36: 8.67, 48: 8.27, 60: 7.62
+                    12: 4.90, 24: 4.90, 36: 4.90, 48: 4.90, 60: 4.90
                 }
             },
-            
-            // STANDARD PAYANT
+
+            // STANDARD PAYANT - Barème T1 2026
             standard: {
                 '0-3000': {
-                    5: 19.50, 10: 18.64, 12: 17.41, 20: 17.41, 24: 17.41, 30: 15.23, 36: 15.05
+                    3: 21.95, 5: 19.50, 10: 18.64, 12: 17.41, 20: 17.41, 24: 17.41, 30: 15.23, 36: 15.05
                 },
                 '3001-6000': {
-                    5: 15.87, 10: 15.87, 12: 15.87, 20: 15.87, 24: 15.87, 30: 15.23, 36: 15.05, 48: 15.87, 60: 15.87
+                    3: 15.79, 5: 15.79, 10: 15.79, 12: 15.79, 20: 15.79, 24: 15.79, 30: 15.23, 36: 15.05, 48: 15.87, 60: 15.87
                 },
                 '6001+': {
-                    5: 8.67, 10: 8.67, 12: 8.67, 20: 8.67, 24: 8.67, 30: 8.67, 36: 8.67, 48: 8.67, 60: 8.67
+                    3: 8.69, 5: 8.67, 10: 8.67, 12: 8.67, 20: 8.67, 24: 8.67, 30: 8.67, 36: 8.67, 48: 8.67, 60: 8.67
                 }
             }
         };
 
-        // --- CONFIGURATION ---
+        // --- CONFIGURATION T1 2026 ---
         const config = {
             standard: {
                 color: '#E60000',
                 defaultTaeg: 18.64,
-                monthsOptions: [5, 10, 12, 20, 24, 30, 36, 48, 60],
+                monthsOptions: [3, 5, 10, 12, 20, 24, 30, 36, 48, 60],
                 defaultMonth: 10
             },
             cuisine: {
                 color: '#004d99',
-                defaultTaeg: 4.90, 
+                defaultTaeg: 4.90,
                 debitRate: 4.79,
                 insuranceRate: 0.1412,
                 insuranceTaeg: 3.20,
@@ -867,7 +1331,7 @@
             sansfrais: {
                 color: '#27ae60',
                 defaultTaeg: 0,
-                monthsOptions: [5, 10, 12, 20],
+                monthsOptions: [3, 5, 10, 12, 20],
                 defaultMonth: 10
             }
         };
@@ -941,13 +1405,12 @@
         }
 
         function updateStandardDurationList(amount) {
-            let availableMonths = [5, 10, 12, 20, 24, 30, 36];
-            
+            // Durées disponibles selon le montant - Barème T1 2026
+            let availableMonths = [3, 5, 10, 12, 20, 24, 30, 36];
+
+            // 48x et 60x uniquement disponibles à partir de 3000€
             if (amount >= 3000) {
                 availableMonths.push(48);
-            }
-            
-            if (amount >= 3000) {
                 availableMonths.push(60);
             }
 
@@ -960,14 +1423,14 @@
                 opt.value = m;
                 opt.textContent = m + ' mois';
                 inputs.months.appendChild(opt);
-                
+
                 if (m === currentVal) newSelected = m;
             });
 
             if (newSelected) {
                 inputs.months.value = newSelected;
             } else {
-                inputs.months.value = availableMonths.includes(36) ? 36 : availableMonths[availableMonths.length - 1];
+                inputs.months.value = availableMonths.includes(10) ? 10 : availableMonths[availableMonths.length - 1];
             }
         }
 
@@ -997,29 +1460,49 @@
                 <div class="product-header">
                     <div><span class="product-badge">${index}</span> Article ${index}</div>
                 </div>
-                
+
                 <div class="input-group">
-                    <label>Prix de l'article (€)</label>
-                    <input type="number" id="price-${index}" value="599.00" step="0.01" oninput="updateCalculation()">
+                    <label class="tooltip-wrapper">
+                        Prix de l'article (€)
+                        <span class="help-icon"><i class="fas fa-question"></i></span>
+                        <span class="tooltip-text">Saisissez le prix TTC de l'article tel qu'il apparaît sur la facture.</span>
+                    </label>
+                    <input type="number" id="price-${index}" value="599.00" step="0.01" oninput="updateCalculation()" placeholder="Ex: 599.00">
                 </div>
 
                 <div class="gld-wrapper">
                     <label class="gld-toggle-label">
                         <input type="checkbox" id="gld-check-${index}" onchange="toggleGLDRow(${index})">
                         <i class="fas fa-shield-alt" style="margin-right:8px;"></i> Garantie (GLD)
+                        <span class="help-icon" style="margin-left:8px;"><i class="fas fa-question"></i></span>
                     </label>
-                    
+                    <div class="gld-tip" style="font-size:0.75rem; color:#666; margin-top:5px; padding-left:30px;">
+                        <i class="fas fa-info-circle" style="color:#3498db;"></i> La GLD prolonge la garantie et offre un capital reprise futur
+                    </div>
+
                     <div class="gld-options" id="gld-options-${index}" style="display:none;">
-                        
+
+                        <!-- Conseil GLD -->
+                        <div class="info-banner success-banner" style="margin:10px 0; padding:8px 12px;">
+                            <i class="fas fa-piggy-bank"></i>
+                            <div style="font-size:0.75rem;">
+                                <strong>Bon à savoir :</strong> Avec la carte BUT, le client récupère 30% du prix en bon d'achat après 5 ans sans sinistre !
+                            </div>
+                        </div>
+
                         <div id="gld-selectors-block-${index}">
                             <div class="input-group" style="margin-bottom:10px;">
-                                <label style="font-size:0.8rem; margin-bottom:4px;">Famille de produit</label>
+                                <label style="font-size:0.8rem; margin-bottom:4px;" class="tooltip-wrapper">
+                                    Famille de produit
+                                    <span class="help-icon" style="width:14px; height:14px; font-size:9px;"><i class="fas fa-question"></i></span>
+                                    <span class="tooltip-text">Choisissez la catégorie correspondant à l'article pour appliquer le bon tarif GLD.</span>
+                                </label>
                                 <select id="gld-family-${index}" onchange="updateGLDSubCats(${index})">
                                     <option value="electro">Électroménager / TV</option>
                                     <option value="meuble">Meuble / Literie</option>
                                 </select>
                             </div>
-                            
+
                             <div class="gld-row">
                                 <select id="gld-subcat-${index}" onchange="updatePremiumState(${index})">
                                     <!-- Rempli par JS -->
@@ -1027,16 +1510,20 @@
                             </div>
                         </div>
 
-                        <div class="gld-row">
+                        <div class="gld-row" style="margin-top:10px;">
+                            <label style="font-size:0.75rem; color:#666; margin-bottom:5px; display:block;">
+                                <i class="fas fa-star" style="color:#f39c12;"></i> Niveau de couverture
+                            </label>
                             <select id="gld-level-${index}" onchange="updateCalculation()">
-                                <option value="1">1★ Essentiel</option>
-                                <option value="3" selected>3★ Sérénité / Power</option>
-                                <option value="4" id="opt-premium-${index}" disabled>💎 Premium</option>
+                                <option value="1">1★ Essentiel - Couverture de base</option>
+                                <option value="3" selected>3★ Sérénité - Couverture complète (Recommandé)</option>
+                                <option value="4" id="opt-premium-${index}" disabled>💎 Premium - Couverture maximale</option>
                             </select>
                         </div>
-                        
-                        <div style="text-align:right; font-size:0.9rem; font-weight:bold; color:var(--gld-color);">
-                            Coût Garantie : <span id="gld-cost-display-${index}">0,00 €</span>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top:1px dashed #ddd;">
+                            <span style="font-size:0.8rem; color:#666;"><i class="fas fa-tag"></i> Coût de la garantie :</span>
+                            <span style="font-size:1.1rem; font-weight:bold; color:var(--gld-color);" id="gld-cost-display-${index}">0,00 €</span>
                         </div>
                     </div>
                 </div>
@@ -1153,7 +1640,7 @@
 
             refreshAllRowsUI();
 
-            const options = type === 'cuisine' ? [12, 24, 36, 48, 60] : [5, 10, 12, 20];
+            const options = type === 'cuisine' ? [12, 24, 36, 48, 60] : [3, 5, 10, 12, 20];
             const currentVal = parseInt(inputs.months.value);
             
             inputs.months.innerHTML = '';
@@ -1313,20 +1800,22 @@
             // Détecter si c'est un projet cuisine
             const isCuisineProject = (currentModeName === 'cuisine' || (currentModeName === 'sansfrais' && currentSFType === 'cuisine'));
             
-            // Liste de toutes les formules possibles (sans les 3x)
+            // Liste de toutes les formules possibles - Barème T1 2026
             const formulas = [
-                // Sans Frais Standard
-                { mode: 'sansfrais', type: 'standard', months: 5, label: '5x Sans Frais', category: 'gratuit' },
+                // Sans Frais Standard (GRATUIT - TAEG 0%)
+                { mode: 'sansfrais', type: 'standard', months: 3, label: '3x Sans Frais', category: 'gratuit', maxAmount: 3000 },
+                { mode: 'sansfrais', type: 'standard', months: 5, label: '5x Sans Frais', category: 'gratuit', maxAmount: 3000 },
                 { mode: 'sansfrais', type: 'standard', months: 10, label: '10x Sans Frais', category: 'gratuit' },
                 { mode: 'sansfrais', type: 'standard', months: 12, label: '12x Sans Frais', category: 'gratuit' },
                 { mode: 'sansfrais', type: 'standard', months: 20, label: '20x Sans Frais', category: 'gratuit' },
-                
-                // Standard Payant avec bonus
+
+                // Standard Payant avec bonus (intérêts remboursés jusqu'à 20 mois)
+                { mode: 'standard', months: 3, label: '3x Payant', category: 'payant', bonus: true },
                 { mode: 'standard', months: 5, label: '5x Payant', category: 'payant', bonus: true },
                 { mode: 'standard', months: 10, label: '10x Payant', category: 'payant', bonus: true },
                 { mode: 'standard', months: 12, label: '12x Payant', category: 'payant', bonus: true },
                 { mode: 'standard', months: 20, label: '20x Payant', category: 'payant', bonus: true },
-                
+
                 // Standard Payant sans bonus
                 { mode: 'standard', months: 24, label: '24x Payant', category: 'payant', bonus: false },
                 { mode: 'standard', months: 30, label: '30x Payant', category: 'payant', bonus: false },
@@ -1363,10 +1852,15 @@
                 // Vérifier disponibilité
                 let available = true;
                 let unavailableReason = '';
-                
+
                 if (formula.minAmount && amount < formula.minAmount) {
                     available = false;
                     unavailableReason = `Minimum ${formula.minAmount}€`;
+                }
+
+                if (formula.maxAmount && amount > formula.maxAmount) {
+                    available = false;
+                    unavailableReason = `Maximum ${formula.maxAmount}€`;
                 }
                 
                 // Vérifier si c'est l'option active
@@ -1468,8 +1962,99 @@
         inputs.taeg.addEventListener('input', updateCalculation);
         inputs.months.addEventListener('change', updateCalculation);
 
+        // --- GESTION DES CONSEILS ET INDICATEURS ---
+        function updateStepIndicator(step) {
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById(`step-${i}`);
+                if (stepEl) {
+                    stepEl.classList.remove('active', 'completed');
+                    if (i < step) stepEl.classList.add('completed');
+                    if (i === step) stepEl.classList.add('active');
+                }
+            }
+        }
+
+        function updateAdviceBanner() {
+            const adviceBanner = document.getElementById('advice-banner');
+            const adviceText = document.getElementById('advice-text');
+            if (!adviceBanner || !adviceText) return;
+
+            const months = parseInt(inputs.months.value);
+            let advice = '';
+            let bannerClass = 'info-banner';
+
+            if (currentMode === 'standard') {
+                if (months <= 20) {
+                    advice = '<strong>Excellent choix !</strong> Avec ' + months + ' mois, les intérêts sont intégralement remboursés sous forme de bon d\'achat.';
+                    bannerClass = 'info-banner success-banner';
+                } else {
+                    advice = '<strong>Information :</strong> Au-delà de 20 mois, les intérêts ne sont pas remboursés sous forme de bon d\'achat.';
+                    bannerClass = 'info-banner';
+                }
+            } else if (currentMode === 'cuisine') {
+                advice = '<strong>Mode Cuisine :</strong> Taux avantageux de 4.90% pour les projets cuisine. Idéal pour les financements longue durée.';
+                bannerClass = 'info-banner';
+            } else if (currentMode === 'sansfrais') {
+                if (sansFraisType === 'standard') {
+                    advice = '<strong>Crédit gratuit !</strong> Le client ne paie aucun intérêt. Le coût est pris en charge par BUT.';
+                    bannerClass = 'info-banner success-banner';
+                } else {
+                    advice = '<strong>Sans Frais Cuisine :</strong> Offre compensée avec mensualités réduites pour les projets cuisine.';
+                    bannerClass = 'info-banner';
+                }
+            }
+
+            adviceText.innerHTML = advice;
+            adviceBanner.className = bannerClass;
+        }
+
+        // Masquer la bannière de bienvenue après interaction
+        function hideWelcomeBanner() {
+            const banner = document.getElementById('welcome-banner');
+            if (banner) {
+                banner.style.transition = 'opacity 0.3s, transform 0.3s';
+                banner.style.opacity = '0';
+                banner.style.transform = 'translateY(-10px)';
+                setTimeout(() => banner.style.display = 'none', 300);
+            }
+        }
+
+        // Mise à jour des étapes lors des interactions
+        inputs.nbArticles.addEventListener('change', () => {
+            hideWelcomeBanner();
+            updateStepIndicator(2);
+        });
+
+        inputs.months.addEventListener('change', () => {
+            updateStepIndicator(4);
+            updateAdviceBanner();
+        });
+
+        // Observer les changements de GLD
+        const originalToggleGLDRow = toggleGLDRow;
+        toggleGLDRow = function(index) {
+            originalToggleGLDRow(index);
+            updateStepIndicator(3);
+            hideWelcomeBanner();
+        };
+
+        // Observer les changements de mode
+        const originalSetMode = setMode;
+        setMode = function(mode) {
+            originalSetMode(mode);
+            updateStepIndicator(1);
+            updateAdviceBanner();
+        };
+
+        const originalSetSansFraisType = setSansFraisType;
+        setSansFraisType = function(type) {
+            originalSetSansFraisType(type);
+            updateAdviceBanner();
+        };
+
         renderProducts();
         setMode('standard');
+        updateAdviceBanner();
 
         // --- FONCTION DE TÉLÉCHARGEMENT PDF ---
         function downloadPDF() {
