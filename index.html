@@ -1743,7 +1743,17 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                 // SEJOUR - Tarifs Juillet 2025 (Catalogue GP Meuble SA)
                 sejour: [[50,9.99,14.99,null], [100,14.99,24.99,null], [150,24.99,39.99,null], [200,29.99,49.99,null], [250,39.99,59.99,null], [300,49.99,69.99,null], [500,69.99,79.99,null], [750,79.99,89.99,null], [1000,89.99,99.99,null], [1200,109.99,119.99,null], [1500,129.99,139.99,null], [2000,149.99,159.99,null], [3000,179.99,189.99,null], [9999,209.99,219.99,null]],
                 // LITERIE - Tarifs Juillet 2025 (Catalogue GP Meuble SA)
-                literie: [[50,6.99,19.99,null], [100,9.99,24.99,null], [200,19.99,34.99,null], [250,29.99,39.99,null], [300,34.99,49.99,null], [350,39.99,59.99,null], [400,44.99,69.99,null], [450,49.99,79.99,null], [500,59.99,89.99,null], [550,69.99,99.99,null], [600,79.99,109.99,null], [650,89.99,119.99,null], [700,99.99,129.99,null], [750,109.99,139.99,null], [800,119.99,149.99,null], [850,129.99,159.99,null], [9999,149.99,169.99,null]],
+                // Format: [seuil, 1★, 3★, Premium, Faubourg, Amatiss]
+                literie: [
+                    [50,6.99,19.99,null,null,null], [100,9.99,24.99,null,null,null], [200,19.99,34.99,null,null,null],
+                    [250,29.99,39.99,null,null,null], [300,34.99,49.99,null,null,null], [350,39.99,59.99,null,null,null],
+                    [400,44.99,69.99,null,null,null], [450,49.99,79.99,null,89.99,null], [500,59.99,89.99,null,99.99,null],
+                    [550,69.99,99.99,null,109.99,null], [600,79.99,109.99,null,119.99,null], [650,89.99,119.99,null,129.99,null],
+                    [700,99.99,129.99,null,139.99,null], [750,109.99,139.99,null,149.99,null], [800,119.99,149.99,null,159.99,null],
+                    [850,129.99,159.99,null,169.99,null], [900,149.99,169.99,null,189.99,null], [1000,149.99,169.99,null,209.99,null],
+                    [1500,149.99,169.99,null,229.99,209.99], [2000,149.99,169.99,null,249.99,249.99],
+                    [3000,149.99,169.99,null,269.99,299.99], [9999,149.99,169.99,null,289.99,349.99]
+                ],
                 // CUISINE (Meuble) - Tarifs Juillet 2025 - CLASSIQUE uniquement (pas de 1★/3★)
                 cuisine: [[1000,129.99,null,null], [1500,149.99,null,null], [2000,199.99,null,null], [2500,249.99,null,null], [3000,299.99,null,null], [4000,349.99,null,null], [5000,399.99,null,null], [7000,null,null,599.99], [10000,null,null,749.99], [99999,null,null,999.99]],
                 // BUREAU/RANGEMENT - Tarifs Juillet 2025 (Catalogue GP Meuble SA)
@@ -1976,7 +1986,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                         <span class="help-icon"><i class="fas fa-question"></i></span>
                         <span class="tooltip-text">Saisissez le prix TTC de l'article tel qu'il apparaît sur la facture.</span>
                     </label>
-                    <input type="number" id="price-${index}" value="599.00" step="0.01" oninput="updateCalculation()" placeholder="Ex: 599.00">
+                    <input type="number" id="price-${index}" value="599.00" step="0.01" oninput="updatePremiumState(${index})" placeholder="Ex: 599.00">
                 </div>
 
                 <!-- ÉTAPE 3 - GLD -->
@@ -2035,6 +2045,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                                 <option value="1">1★ Essentiel - Couverture de base</option>
                                 <option value="3" selected>3★ Sérénité - Couverture complète (Recommandé)</option>
                                 <option value="4" id="opt-premium-${index}" disabled>💎 Premium - Couverture maximale</option>
+                                <option value="5" id="opt-faubourg-${index}" disabled>🛏️ Nuit Faubourg (Literie 400€+)</option>
+                                <option value="6" id="opt-amatiss-${index}" disabled>✨ Amatiss (Literie 1000€+)</option>
                             </select>
                         </div>
 
@@ -2077,12 +2089,17 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
             const familyEl = document.getElementById(`gld-family-${index}`);
             const subcatEl = document.getElementById(`gld-subcat-${index}`);
             const optPremium = document.getElementById(`opt-premium-${index}`);
+            const optFaubourg = document.getElementById(`opt-faubourg-${index}`);
+            const optAmatiss = document.getElementById(`opt-amatiss-${index}`);
             const levelSel = document.getElementById(`gld-level-${index}`);
+            const priceInput = document.getElementById(`price-${index}`);
             if(!familyEl || !subcatEl || !optPremium || !levelSel) return;
 
             const family = familyEl.value;
             const subcat = subcatEl.value;
+            const price = parseFloat(priceInput?.value) || 0;
 
+            // Premium : uniquement pour Siège
             if (family === 'meuble' && subcat === 'siege') {
                 optPremium.disabled = false;
                 optPremium.textContent = "💎 Premium (Siège)";
@@ -2090,6 +2107,36 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                 optPremium.disabled = true;
                 optPremium.textContent = "💎 Premium (Non dispo)";
                 if (levelSel.value === "4") levelSel.value = "3";
+            }
+
+            // Faubourg et Amatiss : uniquement pour Literie
+            if (optFaubourg && optAmatiss) {
+                if (family === 'meuble' && subcat === 'literie') {
+                    // Faubourg disponible à partir de 400€
+                    if (price >= 400) {
+                        optFaubourg.disabled = false;
+                        optFaubourg.textContent = "🛏️ Nuit Faubourg (Literie)";
+                    } else {
+                        optFaubourg.disabled = true;
+                        optFaubourg.textContent = "🛏️ Nuit Faubourg (min 400€)";
+                        if (levelSel.value === "5") levelSel.value = "3";
+                    }
+                    // Amatiss disponible à partir de 1000€
+                    if (price >= 1000) {
+                        optAmatiss.disabled = false;
+                        optAmatiss.textContent = "✨ Amatiss (Literie)";
+                    } else {
+                        optAmatiss.disabled = true;
+                        optAmatiss.textContent = "✨ Amatiss (min 1000€)";
+                        if (levelSel.value === "6") levelSel.value = "3";
+                    }
+                } else {
+                    optFaubourg.disabled = true;
+                    optFaubourg.textContent = "🛏️ Nuit Faubourg (Literie uniquement)";
+                    optAmatiss.disabled = true;
+                    optAmatiss.textContent = "✨ Amatiss (Literie uniquement)";
+                    if (levelSel.value === "5" || levelSel.value === "6") levelSel.value = "3";
+                }
             }
             updateCalculation();
         }
@@ -2256,6 +2303,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
                 if (level === 1) cost = range[1];
                 else if (level === 3) cost = range[2];
                 else if (level === 4) cost = range[3];
+                else if (level === 5) cost = range[4]; // Faubourg (Literie)
+                else if (level === 6) cost = range[5]; // Amatiss (Literie)
             }
             return cost;
         }
